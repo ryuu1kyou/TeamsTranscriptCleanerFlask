@@ -1,0 +1,128 @@
+/* Teams Transcript Cleaner - Flask Version */
+
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.jumbotron {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.btn-group .btn {
+    border-radius: 0.25rem;
+    margin-right: 0.25rem;
+}
+
+.text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.progress-sm {
+    height: 0.5rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+/* Custom loading spinner */
+.spinner-grow-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* File upload styling */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Alert styling */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .jumbotron {
+        padding: 2rem 1rem;
+    }
+    
+    .jumbotron h1 {
+        font-size: 2rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 0.25rem;
+        margin-right: 0;
+    }
+}
+
+/* Status indicators */
+.status-pending {
+    color: #6c757d;
+}
+
+.status-processing {
+    color: #007bff;
+}
+
+.status-completed {
+    color: #28a745;
+}
+
+.status-failed {
+    color: #dc3545;
+}
+
+/* Word count and character count styling */
+.count-display {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+/* Processing mode badges */
+.mode-proofreading {
+    background-color: #17a2b8;
+}
+
+.mode-grammar {
+    background-color: #28a745;
+}
+
+.mode-summary {
+    background-color: #ffc107;
+    color: #212529;
+}

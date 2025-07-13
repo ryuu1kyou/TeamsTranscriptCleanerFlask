@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}について - Teams Transcript Cleaner{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Teams Transcript Cleaner について
+                </h4>
+            </div>
+            <div class="card-body">
+                <h5>概要</h5>
+                <p>Teams Transcript Cleaner は、Microsoft Teams の会議録を AI で高精度に修正するウェブアプリケーションです。音声認識による誤字脱字や不自然な文章を、OpenAI の最新モデルを使用して自動的に修正します。</p>
+                
+                <h5>主な機能</h5>
+                <ul>
+                    <li><strong>誤字脱字修正</strong>: 音声認識エラーによる間違いを自動修正</li>
+                    <li><strong>文法修正</strong>: より自然で読みやすい日本語に改善</li>
+                    <li><strong>要約生成</strong>: 長い会議録から重要ポイントを抽出</li>
+                    <li><strong>ワードリスト機能</strong>: よく使用する修正パターンを辞書として管理</li>
+                    <li><strong>カスタム処理</strong>: 独自の指示に基づいた柔軟な処理</li>
+                </ul>
+                
+                <h5>使用方法</h5>
+                <ol>
+                    <li>Microsoft Teams から会議録をテキストファイルとしてエクスポート</li>
+                    <li>ファイルをアップロードしてタイトルを設定</li>
+                    <li>処理モードとAIモデルを選択</li>
+                    <li>必要に応じてワードリストやカスタムプロンプトを指定</li>
+                    <li>処理を実行して結果をダウンロード</li>
+                </ol>
+                
+                <h5>技術仕様</h5>
+                <ul>
+                    <li><strong>フレームワーク</strong>: Flask (Python)</li>
+                    <li><strong>AI モデル</strong>: OpenAI GPT-4o, GPT-4 Turbo, GPT-3.5 Turbo</li>
+                    <li><strong>データベース</strong>: MySQL</li>
+                    <li><strong>認証</strong>: Flask-Login による安全なユーザー管理</li>
+                </ul>
+                
+                <h5>セキュリティ</h5>
+                <p>すべてのデータは安全に暗号化され、ユーザーごとに分離されて保存されます。アップロードされたファイルと処理結果は、他のユーザーからはアクセスできません。</p>
+                
+                <h5>料金</h5>
+                <p>OpenAI API の使用料金が発生します。処理する文書の長さと選択するモデルによって料金が決まります。使用量は管理画面で確認できます。</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

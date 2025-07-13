@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}トランスクリプトアップロード - Teams Transcript Cleaner{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-upload me-2"></i>トランスクリプトアップロード
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control") }}
+                        {% for error in form.title.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.file.label(class="form-label") }}
+                        {{ form.file(class="form-control") }}
+                        {% for error in form.file.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">
+                            Teams からエクスポートした .txt ファイルを選択してください。
+                        </div>
+                    </div>
+                    
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('transcripts.list') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>キャンセル
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">アップロード方法</h5>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li>Microsoft Teams で会議録をエクスポート</li>
+                    <li>エクスポートされた .txt ファイルを用意</li>
+                    <li>上記フォームでファイルを選択</li>
+                    <li>タイトルを入力</li>
+                    <li>「アップロード」ボタンをクリック</li>
+                </ol>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>ヒント:</strong> ファイルサイズの上限は 10MB です。
+                    大きなファイルの場合は、複数のファイルに分割してアップロードしてください。
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
