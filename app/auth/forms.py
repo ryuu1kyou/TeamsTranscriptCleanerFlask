@@ -9,68 +9,68 @@ from app.models import User
 
 class LoginForm(FlaskForm):
     """User login form."""
-    username = StringField('ユーザー名またはメールアドレス', validators=[DataRequired()])
-    password = PasswordField('パスワード', validators=[DataRequired()])
-    remember_me = BooleanField('ログイン状態を保持')
-    submit = SubmitField('ログイン')
+    username = StringField('Username or Email', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember me')
+    submit = SubmitField('Sign In')
 
 
 class RegistrationForm(FlaskForm):
     """User registration form."""
-    username = StringField('ユーザー名', validators=[
+    username = StringField('Username', validators=[
         DataRequired(),
-        Length(min=4, max=64, message='ユーザー名は4-64文字で入力してください')
+        Length(min=4, max=64, message='Username must be 4-64 characters')
     ])
-    email = StringField('メールアドレス', validators=[DataRequired(), Email()])
-    first_name = StringField('名前', validators=[Optional(), Length(max=64)])
-    last_name = StringField('姓', validators=[Optional(), Length(max=64)])
-    organization = StringField('組織名', validators=[Optional(), Length(max=100)])
-    password = PasswordField('パスワード', validators=[
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    first_name = StringField('First Name', validators=[Optional(), Length(max=64)])
+    last_name = StringField('Last Name', validators=[Optional(), Length(max=64)])
+    organization = StringField('Organization', validators=[Optional(), Length(max=100)])
+    password = PasswordField('Password', validators=[
         DataRequired(),
-        Length(min=8, message='パスワードは8文字以上で入力してください')
+        Length(min=8, message='Password must be at least 8 characters')
     ])
-    password2 = PasswordField('パスワード（確認）', validators=[
+    password2 = PasswordField('Confirm Password', validators=[
         DataRequired(),
-        EqualTo('password', message='パスワードが一致しません')
+        EqualTo('password', message='Passwords must match')
     ])
-    submit = SubmitField('登録')
+    submit = SubmitField('Register')
 
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
-            raise ValidationError('このユーザー名は既に使用されています。')
+            raise ValidationError('This username is already taken.')
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
-            raise ValidationError('このメールアドレスは既に登録されています。')
+            raise ValidationError('This email address is already registered.')
 
 
 class ChangePasswordForm(FlaskForm):
     """Change password form."""
-    current_password = PasswordField('現在のパスワード', validators=[DataRequired()])
-    new_password = PasswordField('新しいパスワード', validators=[
+    current_password = PasswordField('Current Password', validators=[DataRequired()])
+    new_password = PasswordField('New Password', validators=[
         DataRequired(),
-        Length(min=8, message='パスワードは8文字以上で入力してください')
+        Length(min=8, message='Password must be at least 8 characters')
     ])
-    new_password2 = PasswordField('新しいパスワード（確認）', validators=[
+    new_password2 = PasswordField('Confirm New Password', validators=[
         DataRequired(),
-        EqualTo('new_password', message='パスワードが一致しません')
+        EqualTo('new_password', message='Passwords must match')
     ])
-    submit = SubmitField('パスワード変更')
+    submit = SubmitField('Change Password')
 
 
 class EditProfileForm(FlaskForm):
     """Edit user profile form."""
-    username = StringField('ユーザー名', validators=[
+    username = StringField('Username', validators=[
         DataRequired(),
-        Length(min=4, max=64, message='ユーザー名は4-64文字で入力してください')
+        Length(min=4, max=64, message='Username must be 4-64 characters')
     ])
-    email = StringField('メールアドレス', validators=[DataRequired(), Email()])
-    first_name = StringField('名前', validators=[Optional(), Length(max=64)])
-    last_name = StringField('姓', validators=[Optional(), Length(max=64)])
-    organization = StringField('組織名', validators=[Optional(), Length(max=100)])
-    submit = SubmitField('プロフィール更新')
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    first_name = StringField('First Name', validators=[Optional(), Length(max=64)])
+    last_name = StringField('Last Name', validators=[Optional(), Length(max=64)])
+    organization = StringField('Organization', validators=[Optional(), Length(max=100)])
+    submit = SubmitField('Update Profile')
 
     def __init__(self, original_username, original_email, *args, **kwargs):
         super(EditProfileForm, self).__init__(*args, **kwargs)
@@ -81,29 +81,29 @@ class EditProfileForm(FlaskForm):
         if username.data != self.original_username:
             user = User.query.filter_by(username=username.data).first()
             if user is not None:
-                raise ValidationError('このユーザー名は既に使用されています。')
+                raise ValidationError('This username is already taken.')
 
     def validate_email(self, email):
         if email.data != self.original_email:
             user = User.query.filter_by(email=email.data).first()
             if user is not None:
-                raise ValidationError('このメールアドレスは既に登録されています。')
+                raise ValidationError('This email address is already registered.')
 
 
 class RequestPasswordResetForm(FlaskForm):
     """Request password reset form."""
-    email = StringField('メールアドレス', validators=[DataRequired(), Email()])
-    submit = SubmitField('パスワードリセット要求')
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
 
 
 class ResetPasswordForm(FlaskForm):
     """Reset password form."""
-    password = PasswordField('新しいパスワード', validators=[
+    password = PasswordField('New Password', validators=[
         DataRequired(),
-        Length(min=8, message='パスワードは8文字以上で入力してください')
+        Length(min=8, message='Password must be at least 8 characters')
     ])
-    password2 = PasswordField('新しいパスワード（確認）', validators=[
+    password2 = PasswordField('Confirm New Password', validators=[
         DataRequired(),
-        EqualTo('password', message='パスワードが一致しません')
+        EqualTo('password', message='Passwords must match')
     ])
-    submit = SubmitField('パスワードリセット')
+    submit = SubmitField('Reset Password')

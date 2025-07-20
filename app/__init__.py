@@ -8,15 +8,12 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
-from flask_jwt_extended import JWTManager
-
 # Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 mail = Mail()
-jwt = JWTManager()
 
 
 def create_app(config_name=None):
@@ -44,7 +41,6 @@ def create_app(config_name=None):
     migrate.init_app(app, db)
     csrf.init_app(app)
     mail.init_app(app)
-    jwt.init_app(app)
     
     # Configure Flask-Login
     login_manager.init_app(app)
@@ -60,6 +56,11 @@ def create_app(config_name=None):
     # Register blueprints
     from app.auth import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    
+    from app.auth.social import social_bp, google_bp, facebook_bp
+    app.register_blueprint(social_bp, url_prefix='/auth')
+    app.register_blueprint(google_bp, url_prefix='/login')
+    app.register_blueprint(facebook_bp, url_prefix='/login')
     
     from app.transcripts import bp as transcripts_bp
     app.register_blueprint(transcripts_bp, url_prefix='/transcripts')

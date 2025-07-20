@@ -28,11 +28,11 @@ def login():
         ).first()
         
         if user is None or not user.check_password(form.password.data):
-            flash('ユーザー名またはパスワードが正しくありません。', 'error')
+            flash('Invalid username or password', 'error')
             return redirect(url_for('auth.login'))
         
         if not user.is_active:
-            flash('アカウントが無効化されています。管理者にお問い合わせください。', 'error')
+            flash('Your account has been deactivated. Please contact the administrator.', 'error')
             return redirect(url_for('auth.login'))
         
         # Update last login time
@@ -44,17 +44,17 @@ def login():
         if not next_page or not next_page.startswith('/'):
             next_page = url_for('main.index')
         
-        flash(f'ようこそ、{user.full_name}さん！', 'success')
+        flash(f'Welcome, {user.full_name}!', 'success')
         return redirect(next_page)
     
-    return render_template('auth/login.html', title='ログイン', form=form)
+    return render_template('auth/login.html', title='Login', form=form)
 
 
 @bp.route('/logout')
 def logout():
     """User logout."""
     logout_user()
-    flash('ログアウトしました。', 'info')
+    flash('You have been logged out', 'info')
     return redirect(url_for('main.index'))
 
 
@@ -78,10 +78,10 @@ def register():
         db.session.add(user)
         db.session.commit()
         
-        flash('登録が完了しました。ログインしてください。', 'success')
+        flash('Registration completed. Please log in.', 'success')
         return redirect(url_for('auth.login'))
     
-    return render_template('auth/register.html', title='新規登録', form=form)
+    return render_template('auth/register.html', title='Register', form=form)
 
 
 @bp.route('/profile')
@@ -93,7 +93,7 @@ def profile():
     total_jobs = current_user.correction_jobs.count()
     successful_jobs = current_user.correction_jobs.filter_by(status='completed').count()
     
-    return render_template('auth/profile.html', title='プロフィール',
+    return render_template('auth/profile.html', title='Profile',
                          total_transcripts=total_transcripts,
                          total_jobs=total_jobs,
                          successful_jobs=successful_jobs)
@@ -113,7 +113,7 @@ def edit_profile():
         current_user.organization = form.organization.data
         
         db.session.commit()
-        flash('プロフィールが更新されました。', 'success')
+        flash('Profile updated successfully', 'success')
         return redirect(url_for('auth.profile'))
     
     elif request.method == 'GET':
@@ -123,7 +123,7 @@ def edit_profile():
         form.last_name.data = current_user.last_name
         form.organization.data = current_user.organization
     
-    return render_template('auth/edit_profile.html', title='プロフィール編集', form=form)
+    return render_template('auth/edit_profile.html', title='Edit Profile', form=form)
 
 
 @bp.route('/change_password', methods=['GET', 'POST'])
@@ -134,16 +134,16 @@ def change_password():
     
     if form.validate_on_submit():
         if not current_user.check_password(form.current_password.data):
-            flash('現在のパスワードが正しくありません。', 'error')
+            flash('Current password is incorrect', 'error')
             return redirect(url_for('auth.change_password'))
         
         current_user.set_password(form.new_password.data)
         db.session.commit()
         
-        flash('パスワードが変更されました。', 'success')
+        flash('Password changed successfully', 'success')
         return redirect(url_for('auth.profile'))
     
-    return render_template('auth/change_password.html', title='パスワード変更', form=form)
+    return render_template('auth/change_password.html', title='Change Password', form=form)
 
 
 @bp.route('/api_usage')
@@ -163,7 +163,7 @@ def api_usage():
     )
     monthly_cost = sum(job.cost for job in monthly_jobs if job.cost)
     
-    return render_template('auth/api_usage.html', title='API使用状況',
+    return render_template('auth/api_usage.html', title='API Usage',
                          monthly_cost=monthly_cost,
                          recent_jobs=jobs)
 
@@ -173,7 +173,7 @@ def api_usage():
 def reset_api_cost():
     """Reset user's API cost."""
     current_user.reset_api_cost()
-    flash('API使用コストがリセットされました。', 'success')
+    flash('API usage cost has been reset', 'success')
     return redirect(url_for('auth.api_usage'))
 
 
@@ -188,13 +188,13 @@ def request_password_reset():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             # In a real application, you would send an email here
-            flash('パスワードリセットの手順をメールで送信しました。', 'info')
+            flash('Password reset instructions have been sent to your email', 'info')
         else:
-            flash('そのメールアドレスは登録されていません。', 'error')
+            flash('That email address is not registered', 'error')
         return redirect(url_for('auth.login'))
     
     return render_template('auth/request_password_reset.html', 
-                         title='パスワードリセット要求', form=form)
+                         title='Request Password Reset', form=form)
 
 
 @bp.route('/reset_password/<token>', methods=['GET', 'POST'])
@@ -207,8 +207,8 @@ def reset_password(token):
     form = ResetPasswordForm()
     if form.validate_on_submit():
         # For demo purposes, we'll just redirect to login
-        flash('パスワードがリセットされました。新しいパスワードでログインしてください。', 'success')
+        flash('Password has been reset. Please log in with your new password', 'success')
         return redirect(url_for('auth.login'))
     
     return render_template('auth/reset_password.html', 
-                         title='パスワードリセット', form=form)
+                         title='Reset Password', form=form)

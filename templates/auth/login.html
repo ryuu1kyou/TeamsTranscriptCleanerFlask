@@ -43,6 +43,23 @@
                 
                 <hr>
                 
+                <!-- Social Login Section -->
+                <div class="text-center mb-4">
+                    <p class="text-muted">または</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('social.google_login') }}" class="btn btn-outline-danger">
+                            <i class="fab fa-google me-2"></i>Googleでログイン
+                        </a>
+                        {% if config.get('FACEBOOK_OAUTH_CLIENT_ID') %}
+                        <a href="{{ url_for('social.facebook_login') }}" class="btn btn-outline-primary">
+                            <i class="fab fa-facebook-f me-2"></i>Facebookでログイン
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr>
+                
                 <div class="text-center">
                     <p class="mb-2">アカウントをお持ちでない場合：</p>
                     <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary">
