@@ -10,8 +10,15 @@ A Flask-based web application for cleaning and processing Microsoft Teams meetin
 - **Social Login**: Google, GitHub, and Microsoft OAuth integration
 - **Admin Dashboard**: Manage users and system settings
 - **Responsive Design**: Works on desktop and mobile devices
+- **Multi-language Support**: Japanese and English with browser-based auto-detection
 
 ## Quick Start
+
+### ⚠️ Virtual Environment Required
+
+**重要: このプロジェクトは仮想環境での開発が必須です。**
+
+システムのPython環境を汚染しないため、必ず仮想環境を作成してから作業を開始してください。以下の手順に従ってください：
 
 ### 1. Environment Setup
 
@@ -86,6 +93,30 @@ with app.app_context():
 ```
 
 Access at: http://localhost:5000
+
+## Multi-language Support
+
+The application automatically detects browser language settings and supports:
+- **Japanese (日本語)**
+- **English**
+
+### Manual Language Switching
+Users can manually switch languages using the language dropdown in the navigation bar.
+
+### Adding New Languages
+1. Extract translatable strings:
+   ```bash
+   pybabel extract -F babel.cfg -o messages.pot .
+   ```
+2. Initialize new language:
+   ```bash
+   pybabel init -i messages.pot -d app/translations -l [language-code]
+   ```
+3. Edit translation files in `app/translations/[language-code]/LC_MESSAGES/messages.po`
+4. Compile translations:
+   ```bash
+   pybabel compile -d app/translations
+   ```
 
 ## Social Login Setup
 
@@ -202,6 +233,7 @@ TeamsTranscriptCleanerFlask/
 ├── static/                  # CSS, JS, images
 ├── templates/               # HTML templates
 ├── processing/              # AI processing logic
+├── translations/            # Multi-language support
 └── uploads/                 # Uploaded files
 ```
 
@@ -216,6 +248,19 @@ TeamsTranscriptCleanerFlask/
 
 # Downgrade migration
 ./venv/bin/python -m flask db downgrade
+```
+
+### Translation Management
+
+```bash
+# Extract new translatable strings
+pybabel extract -F babel.cfg -o messages.pot .
+
+# Update existing translations
+pybabel update -i messages.pot -d app/translations
+
+# Compile translations
+pybabel compile -d app/translations
 ```
 
 ### Testing

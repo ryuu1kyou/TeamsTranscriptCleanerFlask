@@ -36,8 +36,8 @@
                             <br><small class="text-muted">{{ transcript.original_filename }}</small>
                             {% endif %}
                         </td>
-                        <td>{{ transcript.character_count:,d }}</td>
-                        <td>{{ transcript.word_count:,d }}</td>
+                        <td>{{ "{:,}".format(transcript.character_count or 0) }}</td>
+                        <td>{{ "{:,}".format(transcript.word_count or 0) }}</td>
                         <td>
                             {% if transcript.is_processed %}
                             <span class="badge bg-success">処理済み</span>

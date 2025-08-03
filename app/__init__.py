@@ -2,18 +2,20 @@
 Flask application factory.
 """
 import os
-from flask import Flask
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
+from flask_babel import Babel
 # Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 mail = Mail()
+babel = Babel()
 
 
 def create_app(config_name=None):
@@ -98,6 +100,19 @@ def create_app(config_name=None):
         from flask import flash, redirect, url_for
         flash('ファイルサイズが大きすぎます。10MB以下のファイルをアップロードしてください。', 'error')
         return redirect(url_for('main.index'))
+    
+    # Babel locale selector
+    def get_locale():
+        # Check if user has manually set a language preference
+        from flask import session
+        if 'language' in session:
+            return session['language']
+        
+        # Fall back to browser's preferred language
+        return request.accept_languages.best_match(app.config['LANGUAGES'])
+    
+    # Initialize Babel with locale selector
+    babel.init_app(app, locale_selector=get_locale)
     
     # Shell context processor
     @app.shell_context_processor

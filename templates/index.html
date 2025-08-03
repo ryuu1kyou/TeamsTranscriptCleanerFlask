@@ -1,439 +1,53 @@
 {% extends "base.html" %}
 
-{% block title %}ホーム - Teams Transcript Cleaner{% endblock %}
+{% block title %}{{ _('Teams文字起こしクリーナーへようこそ') }}{% endblock %}
 
 {% block content %}
-{% if not current_user.is_authenticated %}
 <div class="row">
-    <div class="col-12">
-        <div class="jumbotron bg-primary text-white rounded p-5 mb-4">
-            <h1 class="display-4">Teams Transcript Cleaner</h1>
-            <p class="lead">Microsoft Teams の会議録を AI で高精度に修正</p>
-            <hr class="my-4">
-            <p>アカウントを作成して、Teams トランスクリプトの修正を始めましょう。</p>
-            <a class="btn btn-light btn-lg" href="{{ url_for('auth.register') }}" role="button">
-                <i class="fas fa-user-plus me-2"></i>新規登録
-            </a>
-            <a class="btn btn-outline-light btn-lg ms-2" href="{{ url_for('auth.login') }}" role="button">
-                <i class="fas fa-sign-in-alt me-2"></i>ログイン
+    <div class="col-lg-8 mx-auto">
+        <div class="text-center mb-5">
+            <h1 class="display-4 mb-4">{{ _('Teams文字起こしクリーナーへようこそ') }}</h1>
+            <p class="lead">{{ _('Microsoft Teamsの文字起こしファイルをアップロードして、自動的に整形・修正します。') }}</p>
+            <a href="{{ url_for('transcripts.upload') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-upload me-2"></i>{{ _('アップロードを開始') }}
             </a>
         </div>
-    </div>
-</div>
 
-<div class="row">
-    <div class="col-md-6">
-        <h3>主な機能</h3>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-                <i class="fas fa-check text-success me-2"></i>
-                誤字脱字の自動修正
-            </li>
-            <li class="list-group-item">
-                <i class="fas fa-check text-success me-2"></i>
-                文法の自然な修正
-            </li>
-            <li class="list-group-item">
-                <i class="fas fa-check text-success me-2"></i>
-                会議内容の要約生成
-            </li>
-            <li class="list-group-item">
-                <i class="fas fa-check text-success me-2"></i>
-                カスタム辞書機能
-            </li>
-        </ul>
-    </div>
-    
-    <div class="col-md-6">
-        <h3>使用方法</h3>
-        <ol>
-            <li>Microsoft Teams から会議録をエクスポート</li>
-            <li>テキストファイルをアップロード</li>
-            <li>修正モードを選択して処理実行</li>
-            <li>修正結果をダウンロード</li>
-        </ol>
-    </div>
-</div>
-{% else %}
-<!-- ログイン後のメイン画面 - 元の構成に合わせた設計 -->
-<div class="row">
-    <!-- 左サイドバー（設定パネル） -->
-    <div class="col-md-3">
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="mb-0">設定</h5>
-            </div>
-            <div class="card-body">
-                <!-- コスト情報 -->
-                <div class="mb-3">
-                    <h6>コスト情報</h6>
-                    <p class="text-primary mb-1">累計使用コスト: ${{ "%.4f"|format(current_user.total_api_cost) }} USD</p>
-                    <p class="text-muted small mb-2">現在のセッションコスト: $0.0000 USD</p>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="confirm('コスト制限をリセットしますか？')">
-                        コスト制限をリセット
-                    </button>
-                </div>
-                
-                <hr>
-                
-                <!-- OpenAI モデル選択 -->
-                <div class="mb-3">
-                    <label class="form-label">OpenAIモデル選択</label>
-                    <select class="form-select form-select-sm" id="model-select">
-                        <option value="gpt-4o">GPT-4o</option>
-                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                    </select>
-                </div>
-                
-                <!-- 処理モード -->
-                <div class="mb-3">
-                    <label class="form-label">処理モード</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="processing-mode" id="typo-fix" value="proofreading" checked>
-                        <label class="form-check-label" for="typo-fix">誤字脱字修正</label>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-robot text-primary me-2"></i>{{ _('主な機能') }}
+                        </h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>{{ _('文字起こしファイルの自動アップロード') }}</li>
+                            <li><i class="fas fa-check text-success me-2"></i>{{ _('不要なタイムスタンプの削除') }}</li>
+                            <li><i class="fas fa-check text-success me-2"></i>{{ _('話者識別の整理') }}</li>
+                            <li><i class="fas fa-check text-success me-2"></i>{{ _('誤字脱字の自動修正') }}</li>
+                            <li><i class="fas fa-check text-success me-2"></i>{{ _('カスタム単語リストによる専門用語の処理') }}</li>
+                        </ul>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="processing-mode" id="grammar-fix" value="grammar">
-                        <label class="form-check-label" for="grammar-fix">文法修正</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="processing-mode" id="summary" value="summary">
-                        <label class="form-check-label" for="summary">要約</label>
-                    </div>
-                </div>
-                
-                <!-- 追加の指示 -->
-                <div class="mb-3">
-                    <label class="form-label">追加の指示（モードに応じて入力）</label>
-                    <textarea class="form-control" rows="4" placeholder="追加の指示を入力してください"></textarea>
-                </div>
-                
-                <!-- 議事録アップロード -->
-                <div class="mb-3">
-                    <label class="form-label">訂正前議事録（TXT）アップロード</label>
-                    <div class="border rounded p-3 text-center">
-                        <i class="fas fa-upload text-muted"></i>
-                        <p class="small text-muted mb-2">Drag and drop file here</p>
-                        <input type="file" class="form-control form-control-sm" accept=".txt" id="transcript-upload">
-                        <button class="btn btn-sm btn-outline-primary mt-2" onclick="document.getElementById('transcript-upload').click()">Browse files</button>
-                    </div>
-                    <small class="text-muted" id="file-info">ファイルを選択してください</small>
-                </div>
-                
-                <!-- 誤字脱字修正モード用のCSVアップロード -->
-                <div class="mb-3" id="csv-upload-section" style="display: none;">
-                    <label class="form-label">誤字脱字一覧 (CSV) アップロード</label>
-                    <div class="border rounded p-3 text-center">
-                        <i class="fas fa-file-csv text-muted"></i>
-                        <p class="small text-muted mb-2">Drag and drop CSV file here</p>
-                        <input type="file" class="form-control form-control-sm" accept=".csv" id="csv-upload">
-                        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="document.getElementById('csv-upload').click()">Browse CSV</button>
-                    </div>
-                </div>
-                
-                <!-- CSVテキストエリア -->
-                <div class="mb-3" id="csv-edit-section" style="display: none;">
-                    <label class="form-label">誤字脱字一覧編集</label>
-                    <textarea class="form-control" rows="6" id="csv-text" placeholder="誤,正&#10;間違い,正解&#10;エラー,エラー">誤,正</textarea>
-                    <small class="text-muted">CSV形式で誤字と正解を入力してください</small>
-                </div>
-                
-                <!-- 処理実行ボタン -->
-                <div class="d-grid">
-                    <button class="btn btn-success" id="process-btn">訂正実行</button>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- メインコンテンツエリア -->
-    <div class="col-md-9">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0">Teams Transcript Cleaner</h4>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <!-- 訂正前のファイル内容 -->
-                    <div class="col-md-6">
-                        <h5>訂正前のファイル内容（編集不可）</h5>
-                        <div class="border rounded p-3" style="height: 500px; overflow-y: auto; background-color: #f8f9fa;">
-                            <p class="text-muted">ファイルをアップロードしてください。</p>
-                            <div id="original-content"></div>
-                        </div>
-                        
-                    </div>
-                    
-                    <!-- 訂正後のファイル内容 -->
-                    <div class="col-md-6">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5>訂正後のファイル内容（手修正可）</h5>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="diff-display">
-                                <label class="form-check-label" for="diff-display">差分表示</label>
-                            </div>
-                        </div>
-                        
-                        <textarea class="form-control" style="height: 500px; resize: none;" id="corrected-content" placeholder="訂正結果がここに表示されます"></textarea>
-                        
-                        <!-- クイックアクション -->
-                        <div class="mt-3 d-flex gap-2">
-                            <a href="{{ url_for('transcripts.upload') }}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-upload me-1"></i>ファイルアップロード
-                            </a>
-                            <a href="{{ url_for('transcripts.list') }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-list me-1"></i>ファイル一覧
-                            </a>
-                            <a href="{{ url_for('corrections.list') }}" class="btn btn-outline-info btn-sm">
-                                <i class="fas fa-history me-1"></i>処理履歴
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- ステータス表示エリア -->
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <div class="alert alert-info" id="status-area" style="display: none;">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <span id="status-message">準備完了</span>
-                        </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-book text-info me-2"></i>{{ _('使い方ガイド') }}
+                        </h5>
+                        <ol>
+                            <li>{{ _('文字起こしファイルをアップロード') }}</li>
+                            <li>{{ _('自動処理を待つ') }}</li>
+                            <li>{{ _('修正されたテキストを確認') }}</li>
+                            <li>{{ _('必要に応じて手動で調整') }}</li>
+                            <li>{{ _('ダウンロード') }}</li>
+                        </ol>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endif %}
-
-<script>
-// ログイン後の機能用JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    {% if current_user.is_authenticated %}
-    const transcriptUpload = document.getElementById('transcript-upload');
-    const csvUpload = document.getElementById('csv-upload');
-    const originalContent = document.getElementById('original-content');
-    const correctedContent = document.getElementById('corrected-content');
-    const processBtn = document.getElementById('process-btn');
-    const statusArea = document.getElementById('status-area');
-    const statusMessage = document.getElementById('status-message');
-    const fileInfo = document.getElementById('file-info');
-    const csvText = document.getElementById('csv-text');
-    const csvUploadSection = document.getElementById('csv-upload-section');
-    const csvEditSection = document.getElementById('csv-edit-section');
-    const diffDisplay = document.getElementById('diff-display');
-    
-    let originalTextContent = '';
-    let correctedTextContent = '';
-    
-    // 差分表示機能
-    function showDiff(original, corrected) {
-        if (!diffDisplay.checked) {
-            return corrected;
-        }
-        
-        // 簡単な差分表示（実際のプロジェクトではdiff2htmlなどを使用）
-        const originalWords = original.split(/(\s+)/);
-        const correctedWords = corrected.split(/(\s+)/);
-        
-        let result = '';
-        let i = 0, j = 0;
-        
-        while (i < originalWords.length || j < correctedWords.length) {
-            if (i >= originalWords.length) {
-                result += `<span style="background-color: #d4edda; color: #155724;">${correctedWords[j]}</span>`;
-                j++;
-            } else if (j >= correctedWords.length) {
-                result += `<span style="background-color: #f8d7da; color: #721c24; text-decoration: line-through;">${originalWords[i]}</span>`;
-                i++;
-            } else if (originalWords[i] === correctedWords[j]) {
-                result += originalWords[i];
-                i++;
-                j++;
-            } else {
-                result += `<span style="background-color: #f8d7da; color: #721c24; text-decoration: line-through;">${originalWords[i]}</span>`;
-                result += `<span style="background-color: #d4edda; color: #155724;">${correctedWords[j]}</span>`;
-                i++;
-                j++;
-            }
-        }
-        
-        return result;
-    }
-    
-    // 差分表示チェックボックスの変更イベント
-    if (diffDisplay) {
-        diffDisplay.addEventListener('change', function() {
-            if (correctedTextContent) {
-                if (this.checked) {
-                    correctedContent.style.display = 'none';
-                    let diffElement = document.getElementById('diff-content');
-                    if (!diffElement) {
-                        diffElement = document.createElement('div');
-                        diffElement.id = 'diff-content';
-                        diffElement.className = 'border rounded p-3';
-                        diffElement.style.cssText = 'height: 500px; overflow-y: auto; background-color: #f8f9fa;';
-                        correctedContent.parentNode.insertBefore(diffElement, correctedContent);
-                    }
-                    diffElement.innerHTML = showDiff(originalTextContent, correctedTextContent);
-                    diffElement.style.display = 'block';
-                } else {
-                    correctedContent.style.display = 'block';
-                    const diffElement = document.getElementById('diff-content');
-                    if (diffElement) {
-                        diffElement.style.display = 'none';
-                    }
-                }
-            }
-        });
-    }
-    
-    // 処理モード変更時のCSV表示制御
-    document.querySelectorAll('input[name="processing-mode"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'proofreading') {
-                csvUploadSection.style.display = 'block';
-                csvEditSection.style.display = 'block';
-            } else {
-                csvUploadSection.style.display = 'none';
-                csvEditSection.style.display = 'none';
-            }
-        });
-    });
-    
-    // 初期状態で誤字脱字修正が選択されている場合はCSVセクションを表示
-    const proofreadingRadio = document.getElementById('typo-fix');
-    if (proofreadingRadio && proofreadingRadio.checked) {
-        csvUploadSection.style.display = 'block';
-        csvEditSection.style.display = 'block';
-    }
-    
-    // 議事録ファイルアップロード処理
-    if (transcriptUpload) {
-        transcriptUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file && file.type === 'text/plain') {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const content = e.target.result;
-                    originalTextContent = content;
-                    originalContent.innerHTML = '<pre style="white-space: pre-wrap; margin: 0;">' + content + '</pre>';
-                    
-                    // 文字数とコスト計算
-                    const charCount = content.length;
-                    const tokenCount = Math.ceil(charCount / 4);
-                    const estimatedCost = tokenCount * 0.00001; // 概算
-                    
-                    fileInfo.textContent = 
-                        `テキスト長: ${charCount}文字、概算トークン数: ${tokenCount}、概算コスト: $${estimatedCost.toFixed(4)} USD`;
-                    
-                    // プレースホルダーを非表示
-                    const placeholder = originalContent.querySelector('.text-muted');
-                    if (placeholder) {
-                        placeholder.style.display = 'none';
-                    }
-                };
-                reader.readAsText(file);
-            }
-        });
-    }
-    
-    // CSVファイルアップロード処理
-    if (csvUpload) {
-        csvUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file && file.type === 'text/csv') {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    csvText.value = e.target.result;
-                };
-                reader.readAsText(file);
-            }
-        });
-    }
-    
-    // 処理実行ボタン
-    if (processBtn) {
-        processBtn.addEventListener('click', async function() {
-            const originalText = originalContent.textContent || originalContent.innerText;
-            if (!originalText.trim() || originalText.includes('ファイルをアップロードしてください')) {
-                alert('まずファイルをアップロードしてください。');
-                return;
-            }
-            
-            const selectedMode = document.querySelector('input[name="processing-mode"]:checked').value;
-            if (selectedMode === 'proofreading') {
-                const csvData = csvText.value.trim();
-                if (!csvData || csvData === '誤,正') {
-                    alert('誤字脱字修正モードではCSV一覧を入力してください。');
-                    return;
-                }
-            }
-            
-            // UI更新
-            statusArea.style.display = 'block';
-            statusMessage.textContent = '処理中...';
-            processBtn.disabled = true;
-            correctedContent.value = '';
-            
-            try {
-                // API呼び出し
-                const requestData = {
-                    content: originalText.replace('ファイルをアップロードしてください。', '').trim(),
-                    processing_mode: selectedMode,
-                    model_used: document.getElementById('model-select').value,
-                    custom_prompt: document.querySelector('textarea[placeholder="追加の指示を入力してください"]').value,
-                    csv_text: selectedMode === 'proofreading' ? csvText.value : '',
-                    title: `議事録_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}`
-                };
-                
-                const response = await fetch('/api/v1/process', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content')
-                    },
-                    body: JSON.stringify(requestData)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
-                    // 成功
-                    correctedTextContent = result.corrected_content;
-                    correctedContent.value = result.corrected_content;
-                    statusMessage.innerHTML = `
-                        <i class="fas fa-check-circle me-2"></i>
-                        処理完了！ 
-                        <small>(コスト: $${result.cost.toFixed(4)}, トークン: ${result.prompt_tokens + result.completion_tokens})</small>
-                    `;
-                    statusArea.className = 'alert alert-success';
-                    
-                    // セッションコスト更新
-                    const sessionCostElement = document.querySelector('.text-muted.small.mb-2');
-                    if (sessionCostElement) {
-                        const currentCost = parseFloat(sessionCostElement.textContent.match(/\$([0-9.]+)/)?.[1] || 0);
-                        sessionCostElement.textContent = 
-                            sessionCostElement.textContent.replace(/現在のセッションコスト: \$[0-9.]+/, 
-                            `現在のセッションコスト: $${(currentCost + result.cost).toFixed(4)}`);
-                    }
-                } else {
-                    // エラー
-                    statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>エラー: ${result.error}`;
-                    statusArea.className = 'alert alert-danger';
-                }
-                
-            } catch (error) {
-                console.error('処理エラー:', error);
-                statusMessage.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>通信エラーが発生しました: ${error.message}`;
-                statusArea.className = 'alert alert-danger';
-            }
-            
-            processBtn.disabled = false;
-        });
-    }
-    {% endif %}
-});
-</script>
 {% endblock %}
