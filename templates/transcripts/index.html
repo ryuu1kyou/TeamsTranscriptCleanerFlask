@@ -1,0 +1,1195 @@
+{% extends "base.html" %}
+
+{% block title %}Teams Transcript Cleaner{% endblock %}
+
+{% block content %}
+<div class="row vh-100">
+  <!-- Left Sidebar: Settings Panel (Resizable) -->
+  <div class="border-end overflow-auto position-relative" id="leftPanel" style="min-width: 250px; width: 300px;">
+    <div class="p-3">
+      <h6 class="text-danger mb-3">{{ _('設定') }}</h6>
+      
+      <div class="alert alert-success py-2" role="alert">
+        <small>{{ _('OpenAI APIキーが設定されています') }}</small>
+      </div>
+      
+      <div class="mb-4">
+        <h6>{{ _('コスト情報') }}</h6>
+        <div class="bg-light p-2 rounded mb-2">
+          <small class="text-primary">{{ _('累計使用コスト') }}: ${{ "%.5f" | format(current_user.total_api_cost) }} USD</small>
+        </div>
+        <div class="bg-light p-2 rounded mb-2">
+          <small class="text-primary" id="sessionCostDisplay">{{ _('現在のセッションコスト') }}: $0.00000 USD</small>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetSessionCost()">{{ _('コスト履歴をリセット') }}</button>
+      </div>
+      
+      <div class="mb-4">
+        <h6>{{ _('OpenAIモデル選択') }}</h6>
+        <select class="form-select form-select-sm" id="modelSelect">
+          <option value="gpt-4o">GPT-4o</option>
+          <option value="gpt-4o-mini">GPT-4o Mini</option>
+          <option value="gpt-4-turbo">GPT-4 Turbo</option>
+        </select>
+        <small class="text-muted d-block mt-1" id="pricingInfo">
+          料金: $料金情報 USD / 1000トークン USD / 1000トークン
+        </small>
+      </div>
+      
+      <div class="mb-4">
+        <h6>{{ _('処理モード選択') }}</h6>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="processingMode" id="proofreading" value="proofreading" checked>
+          <label class="form-check-label" for="proofreading">
+            <small>{{ _('誤字脱字修正') }}</small>
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="processingMode" id="grammar" value="grammar">
+          <label class="form-check-label" for="grammar">
+            <small>{{ _('文法修正') }}</small>
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="processingMode" id="summary" value="summary">
+          <label class="form-check-label" for="summary">
+            <small>{{ _('要約') }}</small>
+          </label>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <h6>{{ _('追加の指示（モードに応じて入力）') }}</h6>
+        <textarea class="form-control" rows="3" id="customPrompt" placeholder="例：誤字脱字モード「特」に入れ込み要素に確認し、要約モード「130文字以内で箇条書きで」"></textarea>
+      </div>
+      
+      <div class="mb-4">
+        <h6>{{ _('訂正前辞書 (TXT) アップロード') }}</h6>
+        <div class="border border-dashed rounded p-2 text-center mb-2" style="min-height: 80px;">
+          <small class="d-block">{{ _('Drag and drop file here') }}</small>
+          <small class="text-muted">{{ _('Limit 200MB per file • TXT') }}</small>
+          <input type="file" id="txtFile" accept=".txt" style="display: none;">
+          <button class="btn btn-sm btn-outline-primary mt-1" onclick="document.getElementById('txtFile').click()">{{ _('Browse files') }}</button>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <h6>{{ _('誤字脱字一覧 (CSV) アップロード') }}</h6>
+        <div class="border border-dashed rounded p-2 text-center" style="min-height: 80px;">
+          <small class="d-block">{{ _('Drag and drop file here') }}</small>
+          <small class="text-muted">{{ _('Limit 200MB per file • CSV') }}</small>
+          <input type="file" id="csvFile" accept=".csv" style="display: none;">
+          <button class="btn btn-sm btn-outline-primary mt-1" onclick="document.getElementById('csvFile').click()">Browse files</button>
+        </div>
+      </div>
+      
+      <!-- WordList Management Button -->
+      <div class="mt-4 border-top pt-3">
+        <button class="btn btn-outline-success w-100" onclick="toggleWordListManagement()">
+          <i class="fas fa-list me-1"></i>{{ _('辞書一覧') }}
+        </button>
+      </div>
+      
+      <!-- User Management Button (only for admin users) -->
+      {% if current_user.can_manage_users() %}
+      <div class="mt-2">
+        <button class="btn btn-outline-info w-100" onclick="toggleUserManagement()">
+          <i class="fas fa-cog me-1"></i>{{ _('管理') }}
+        </button>
+      </div>
+      {% endif %}
+    </div>
+    
+    <!-- Resize Handle -->
+    <div class="position-absolute top-0 end-0 h-100 bg-primary" 
+         id="resizeHandle" 
+         style="width: 4px; cursor: col-resize; opacity: 0.3;"
+         onmouseenter="this.style.opacity='1'"
+         onmouseleave="this.style.opacity='0.3'">
+    </div>
+  </div>
+  
+  <!-- Right Side: Main Content Area -->
+  <div class="flex-fill d-flex flex-column overflow-hidden" id="rightPanel">
+    <!-- Header with Title and User Info -->
+    <div class="d-flex justify-content-between align-items-center p-3 border-bottom flex-shrink-0">
+      <h4 class="mb-0 text-primary">Teams Transcript Cleaner</h4>
+      <div class="d-flex align-items-center">
+        <small class="me-3">{{ _('ユーザー') }}: {{ current_user.full_name or current_user.username }}</small>
+        <button class="btn btn-outline-primary btn-sm me-2" onclick="showMainScreen()">
+          <i class="fas fa-home me-1"></i>{{ _('メイン画面') }}
+        </button>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary btn-sm">{{ _('ログアウト') }}</a>
+      </div>
+    </div>
+    
+    <!-- Content Areas -->
+    <div class="flex-fill p-3 overflow-auto" id="mainContent">
+      <div class="row h-100">
+        <div class="col-6">
+          <div class="h-100 d-flex flex-column">
+            <h5 class="mb-2">{{ _('訂正前のファイル内容（編集不可）') }}</h5>
+            <div class="flex-fill bg-light border rounded p-3 overflow-auto">
+              <textarea class="form-control h-100 border-0 bg-transparent resize-none" id="originalContent" readonly placeholder="{{ _('テキストファイルをアップロードしてください') }}" style="resize: none;"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="h-100 d-flex flex-column">
+            <h5 class="mb-2">{{ _('訂正後のファイル内容（手修正可）') }}</h5>
+            <div class="flex-fill bg-light border rounded p-3 overflow-auto">
+              <textarea class="form-control h-100 border-0 bg-transparent resize-none" id="correctedContent" placeholder="{{ _('訂正実行後に結果が表示されます') }}" style="resize: none;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- WordList Management Content (Hidden by default) -->
+    <div class="flex-fill p-3 overflow-auto" id="wordListManagementContent" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">{{ _('辞書管理') }}</h4>
+        <div>
+          <button class="btn btn-primary btn-sm me-2" onclick="createNewWordList()">
+            <i class="fas fa-plus me-1"></i>{{ _('新規作成') }}
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" onclick="showMainScreen()">
+            <i class="fas fa-arrow-left me-1"></i>{{ _('戻る') }}
+          </button>
+        </div>
+      </div>
+      
+      <!-- WordList List -->
+      <div class="row">
+        <div class="col-6">
+          <div class="card h-100">
+            <div class="card-header">
+              <h5 class="mb-0">{{ _('辞書一覧') }}</h5>
+            </div>
+            <div class="card-body overflow-auto">
+              <div id="wordListList">
+                <!-- WordList items will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- WordList Detail/Edit Panel -->
+        <div class="col-6">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0" id="wordListDetailTitle">辞書詳細</h5>
+              <div id="wordListDetailActions" style="display: none;">
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="editWordList()">
+                  <i class="fas fa-edit me-1"></i>編集
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteWordList()">
+                  <i class="fas fa-trash me-1"></i>削除
+                </button>
+              </div>
+            </div>
+            <div class="card-body overflow-auto">
+              <div id="wordListDetailContent">
+                <p class="text-muted text-center">辞書を選択してください</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Management Content (Hidden by default) -->
+    <div class="flex-fill p-3 overflow-auto" id="userManagementContent" style="display: none;">
+      <!-- Tab Navigation -->
+      <ul class="nav nav-tabs mb-3" id="managementTabs">
+        <li class="nav-item">
+          <button class="nav-link active" id="userTab" onclick="switchTab('user')">
+            <i class="fas fa-users me-1"></i>{{ _('ユーザー管理') }}
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="roleTab" onclick="switchTab('role')">
+            <i class="fas fa-shield-alt me-1"></i>{{ _('ロール管理') }}
+          </button>
+        </li>
+      </ul>
+      
+      <!-- User Management Tab -->
+      <div class="tab-content h-100">
+        <div class="tab-pane fade show active h-100" id="userTabContent">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">{{ _('ユーザー一覧') }}</h5>
+              <button class="btn btn-primary btn-sm" onclick="addUser()">
+                <i class="fas fa-plus me-1"></i>{{ _('新規ユーザー追加') }}
+              </button>
+            </div>
+            <div class="card-body overflow-auto">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th>ID</th>
+                      <th>{{ _('ユーザー名') }}</th>
+                      <th>{{ _('メール') }}</th>
+                      <th>ロール</th>
+                      <th>{{ _('最終ログイン') }}</th>
+                      <th>{{ _('ステータス') }}</th>
+                      <th>アクション</th>
+                    </tr>
+                  </thead>
+                  <tbody id="userTableBody">
+                    <!-- User data will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Role Management Tab -->
+        <div class="tab-pane fade h-100" id="roleTabContent">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">ロール管理</h5>
+              <button class="btn btn-primary btn-sm" onclick="addRole()">
+                <i class="fas fa-plus me-1"></i>新規ロール追加
+              </button>
+            </div>
+            <div class="card-body overflow-auto">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th>ロール名</th>
+                      <th>説明</th>
+                      <th>権限</th>
+                      <th>ユーザー数</th>
+                      <th>作成日</th>
+                      <th>アクション</th>
+                    </tr>
+                  </thead>
+                  <tbody id="roleTableBody">
+                    <!-- Role data will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Bottom Buttons (Only for Main Content) -->
+    <div class="p-3 border-top flex-shrink-0" id="mainButtons">
+      <div class="row">
+        <div class="col-6">
+          <button class="btn btn-secondary w-100" id="copyToCorrectedBtn" disabled onclick="copyToCorrected()">
+            {{ _('訂正後テキストを訂正前にコピー') }}
+          </button>
+        </div>
+        <div class="col-6">
+          <button class="btn btn-outline-secondary w-100" id="downloadBtn" disabled onclick="downloadResult()">
+            {{ _('最終確定をダウンロード') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden Process Button (triggered by file upload) -->
+<button id="processBtn" style="display: none;" onclick="processText()">Process</button>
+
+<!-- Stats and Diff Display (hidden by default) -->
+<div id="statsDisplay" style="display: none;">
+  <small id="originalStats">文字数: 0, 単語数: 0</small>
+  <small id="correctedStats">訂正実行後に統計が表示されます</small>
+</div>
+
+<div id="diffDisplay" style="display: none;">
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">差分表示</h5>
+    </div>
+    <div class="card-body">
+      <div id="diffContent"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let sessionCost = 0.0;
+let originalText = '';
+let correctedText = '';
+let selectedWordlistId = null;
+
+// File upload handlers
+document.getElementById('txtFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            originalText = e.target.result;
+            document.getElementById('originalContent').value = originalText;
+            updateOriginalStats();
+            // Auto-trigger processing after file upload
+            processText();
+        };
+        reader.readAsText(file);
+    }
+});
+
+document.getElementById('csvFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Upload CSV to create temporary wordlist
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('name', 'Temp_' + Date.now());
+        formData.append('description', 'Temporary wordlist for processing');
+        
+        fetch('/wordlists/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                selectedWordlistId = data.wordlist_id;
+                showSuccess('CSVファイルが読み込まれました');
+            } else {
+                showError('CSVファイルの読み込みに失敗しました: ' + (data.error || '不明なエラー'));
+            }
+        })
+        .catch(error => {
+            showError('CSVファイルの読み込みに失敗しました: ' + error.message);
+        });
+    }
+});
+
+// Text processing
+function processText() {
+    if (!originalText) {
+        showError('テキストファイルをアップロードしてください');
+        return;
+    }
+    
+    const processingMode = document.querySelector('input[name="processingMode"]:checked').value;
+    const model = document.getElementById('modelSelect').value;
+    const customPrompt = document.getElementById('customPrompt').value;
+    
+    // Show processing state
+    const processBtn = document.getElementById('processBtn');
+    processBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>処理中...';
+    processBtn.disabled = true;
+    
+    // Make API call
+    fetch('/api/process', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            content: originalText,
+            processing_mode: processingMode,
+            model_used: model,
+            custom_prompt: customPrompt,
+            wordlist_id: selectedWordlistId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            correctedText = data.corrected_text;
+            document.getElementById('correctedContent').value = correctedText;
+            updateCorrectedStats();
+            
+            // Update session cost
+            sessionCost += parseFloat(data.cost);
+            updateSessionCost();
+            
+            // Enable download button
+            document.getElementById('downloadBtn').disabled = false;
+            document.getElementById('copyToCorrectedBtn').disabled = false;
+            
+            showSuccess(`処理完了 - コスト: $${data.cost.toFixed(5)}`);
+            
+            // Show diff if enabled
+            if (document.getElementById('showDiff').checked) {
+                showDiff();
+            }
+        } else {
+            showError('処理エラー: ' + (data.error || '不明なエラー'));
+        }
+    })
+    .catch(error => {
+        showError('処理エラー: ' + error.message);
+    })
+    .finally(() => {
+        processBtn.innerHTML = '<i class="fas fa-magic me-1"></i>テキストを処理実行';
+        processBtn.disabled = false;
+    });
+}
+
+function copyToCorrected() {
+    const correctedContent = document.getElementById('correctedContent').value;
+    if (correctedContent) {
+        originalText = correctedContent;
+        document.getElementById('originalContent').value = originalText;
+        updateOriginalStats();
+        showSuccess('テキストがコピーされました');
+    }
+}
+
+function downloadResult() {
+    const content = document.getElementById('correctedContent').value;
+    if (content) {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'corrected_transcript.txt';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showSuccess('ファイルがダウンロードされました');
+    }
+}
+
+function showDiff() {
+    if (!originalText || !correctedText) return;
+    
+    const diffDisplay = document.getElementById('diffDisplay');
+    const diffContent = document.getElementById('diffContent');
+    
+    // Simple diff implementation
+    const diff = createDiff(originalText, correctedText);
+    diffContent.innerHTML = diff;
+    diffDisplay.style.display = 'block';
+}
+
+function createDiff(original, corrected) {
+    // Simple word-level diff
+    const originalWords = original.split(/(\s+)/);
+    const correctedWords = corrected.split(/(\s+)/);
+    
+    let result = '<pre style="white-space: pre-wrap; word-wrap: break-word;">';
+    
+    const maxLength = Math.max(originalWords.length, correctedWords.length);
+    for (let i = 0; i < maxLength; i++) {
+        const originalWord = originalWords[i] || '';
+        const correctedWord = correctedWords[i] || '';
+        
+        if (originalWord !== correctedWord) {
+            if (originalWord && !correctedWord) {
+                result += `<span style="background-color: #ffdddd; text-decoration: line-through;">${originalWord}</span>`;
+            } else if (!originalWord && correctedWord) {
+                result += `<span style="background-color: #ddffdd;">${correctedWord}</span>`;
+            } else {
+                result += `<span style="background-color: #ffdddd; text-decoration: line-through;">${originalWord}</span>`;
+                result += `<span style="background-color: #ddffdd;">${correctedWord}</span>`;
+            }
+        } else {
+            result += originalWord;
+        }
+    }
+    
+    result += '</pre>';
+    return result;
+}
+
+// Utility functions
+function updateOriginalStats() {
+    const text = document.getElementById('originalContent').value;
+    const charCount = text.length;
+    const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+    document.getElementById('originalStats').textContent = `文字数: ${charCount.toLocaleString()}, 単語数: ${wordCount.toLocaleString()}`;
+}
+
+function updateCorrectedStats() {
+    const text = document.getElementById('correctedContent').value;
+    const charCount = text.length;
+    const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+    document.getElementById('correctedStats').textContent = `文字数: ${charCount.toLocaleString()}, 単語数: ${wordCount.toLocaleString()}`;
+}
+
+function updateSessionCost() {
+    document.getElementById('sessionCostDisplay').textContent = `現在のセッションコスト: $${sessionCost.toFixed(5)} USD`;
+}
+
+function resetSessionCost() {
+    sessionCost = 0.0;
+    updateSessionCost();
+    showSuccess('セッションコストがリセットされました');
+}
+
+function showSuccess(message) {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `${message} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+}
+
+function showError(message) {
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `${message} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 8000);
+}
+
+// Model selection handler
+document.getElementById('modelSelect').addEventListener('change', function() {
+    const model = this.value;
+    const pricingInfo = {
+        'gpt-4o': '$0.005 / 1000トークン (入力) • $0.015 / 1000トークン (出力)',
+        'gpt-4o-mini': '$0.000150 / 1000トークン (入力) • $0.000600 / 1000トークン (出力)',
+        'gpt-4-turbo': '$0.010 / 1000トークン (入力) • $0.030 / 1000トークン (出力)'
+    };
+    document.getElementById('pricingInfo').textContent = '料金: ' + pricingInfo[model];
+});
+
+// Show diff toggle
+document.getElementById('showDiff').addEventListener('change', function() {
+    if (this.checked && originalText && correctedText) {
+        showDiff();
+    } else {
+        document.getElementById('diffDisplay').style.display = 'none';
+    }
+});
+
+// Initialize pricing info
+document.getElementById('modelSelect').dispatchEvent(new Event('change'));
+
+// WordList Management Functions
+let currentSelectedWordListId = null;
+let isEditingWordList = false;
+
+function toggleWordListManagement() {
+    const mainContent = document.getElementById('mainContent');
+    const wordListManagementContent = document.getElementById('wordListManagementContent');
+    const userManagementContent = document.getElementById('userManagementContent');
+    const mainButtons = document.getElementById('mainButtons');
+    
+    // Hide all other contents
+    mainContent.style.display = 'none';
+    userManagementContent.style.display = 'none';
+    mainButtons.style.display = 'none';
+    
+    // Show WordList management
+    wordListManagementContent.style.display = 'block';
+    loadWordListData();
+}
+
+function loadWordListData() {
+    fetch('/wordlists/api/wordlists')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayWordListData(data.wordlists);
+            } else {
+                showError('辞書データの読み込みに失敗しました: ' + data.error);
+            }
+        })
+        .catch(error => {
+            showError('辞書データの読み込みに失敗しました: ' + error.message);
+        });
+}
+
+function displayWordListData(wordlists) {
+    const listContainer = document.getElementById('wordListList');
+    
+    if (wordlists.length === 0) {
+        listContainer.innerHTML = '<p class="text-muted text-center">辞書がありません</p>';
+        return;
+    }
+    
+    listContainer.innerHTML = wordlists.map(wordlist => `
+        <div class="card mb-2 wordlist-item" data-id="${wordlist.id}" onclick="selectWordList(${wordlist.id})">
+            <div class="card-body p-2">
+                <h6 class="card-title mb-1">${wordlist.name} 
+                    <span class="badge bg-secondary ms-1">v${wordlist.version}</span>
+                    ${!wordlist.is_active ? '<span class="badge bg-warning">履歴</span>' : ''}
+                </h6>
+                <p class="card-text small text-muted mb-1">${wordlist.description || '説明なし'}</p>
+                <div class="d-flex justify-content-between">
+                    <small class="text-info">${wordlist.word_count}語</small>
+                    <small class="text-muted">最終使用: ${wordlist.last_used_at}</small>
+                </div>
+                <small class="text-muted">使用回数: ${wordlist.usage_count}回</small>
+            </div>
+        </div>
+    `).join('');
+}
+
+function selectWordList(wordlistId) {
+    currentSelectedWordListId = wordlistId;
+    
+    // Update visual selection
+    document.querySelectorAll('.wordlist-item').forEach(item => {
+        item.classList.remove('border-primary');
+    });
+    document.querySelector(`[data-id="${wordlistId}"]`).classList.add('border-primary');
+    
+    // Load detailed information
+    fetch(`/wordlists/api/wordlists/${wordlistId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayWordListDetail(data.wordlist);
+            } else {
+                showError('辞書詳細の読み込みに失敗しました: ' + data.error);
+            }
+        })
+        .catch(error => {
+            showError('辞書詳細の読み込みに失敗しました: ' + error.message);
+        });
+}
+
+function displayWordListDetail(wordlist) {
+    const titleElement = document.getElementById('wordListDetailTitle');
+    const actionsElement = document.getElementById('wordListDetailActions');
+    const contentElement = document.getElementById('wordListDetailContent');
+    
+    titleElement.textContent = `${wordlist.name} (v${wordlist.version})`;
+    actionsElement.style.display = 'block';
+    
+    const historyHtml = wordlist.history.length > 0 ? `
+        <div class="mt-3">
+            <h6>版本履歴</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>版本</th>
+                            <th>作成日</th>
+                            <th>語数</th>
+                            <th>使用回数</th>
+                            <th>状態</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${wordlist.history.map(version => `
+                            <tr>
+                                <td>v${version.version}</td>
+                                <td>${version.created_at}</td>
+                                <td>${version.word_count}</td>
+                                <td>${version.usage_count}</td>
+                                <td>${version.is_active ? '<span class="badge bg-success">現在</span>' : '<span class="badge bg-secondary">履歴</span>'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    ` : '';
+    
+    contentElement.innerHTML = `
+        <div>
+            <div class="mb-3">
+                <label class="form-label">名前:</label>
+                <input type="text" class="form-control" id="editWordListName" value="${wordlist.name}" disabled>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">説明:</label>
+                <textarea class="form-control" id="editWordListDescription" rows="2" disabled>${wordlist.description}</textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">情報:</label>
+                <div class="bg-light p-2 rounded">
+                    <small class="d-block">語数: ${wordlist.word_count}</small>
+                    <small class="d-block">使用回数: ${wordlist.usage_count}</small>
+                    <small class="d-block">最終使用: ${wordlist.last_used_at}</small>
+                    <small class="d-block">作成日: ${wordlist.created_at}</small>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">CSV内容 (${wordlist.word_pairs.length}語):</label>
+                <div class="bg-light p-2 rounded" style="max-height: 200px; overflow-y: auto;">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr><th>誤字</th><th>正字</th></tr>
+                        </thead>
+                        <tbody>
+                            ${wordlist.word_pairs.map(pair => `
+                                <tr>
+                                    <td>${pair.incorrect}</td>
+                                    <td>${pair.correct}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <textarea class="form-control mt-2" id="editWordListCSV" rows="6" style="display: none;">${wordlist.csv_content}</textarea>
+            </div>
+            
+            ${historyHtml}
+        </div>
+    `;
+}
+
+function editWordList() {
+    if (!currentSelectedWordListId) return;
+    
+    isEditingWordList = !isEditingWordList;
+    
+    const nameInput = document.getElementById('editWordListName');
+    const descInput = document.getElementById('editWordListDescription');
+    const csvInput = document.getElementById('editWordListCSV');
+    const wordPairTable = document.querySelector('#wordListDetailContent .bg-light.p-2.rounded');
+    
+    if (isEditingWordList) {
+        nameInput.disabled = false;
+        descInput.disabled = false;
+        csvInput.style.display = 'block';
+        wordPairTable.style.display = 'none';
+        
+        document.querySelector('#wordListDetailActions button[onclick="editWordList()"]').innerHTML = 
+            '<i class="fas fa-save me-1"></i>保存';
+    } else {
+        // Save changes
+        const updatedData = {
+            name: nameInput.value,
+            description: descInput.value,
+            csv_content: csvInput.value
+        };
+        
+        fetch(`/wordlists/api/wordlists/${currentSelectedWordListId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess('辞書が更新されました');
+                loadWordListData();
+                selectWordList(data.wordlist.id); // Reload with new ID if version was created
+            } else {
+                showError('更新に失敗しました: ' + data.error);
+            }
+        })
+        .catch(error => {
+            showError('更新に失敗しました: ' + error.message);
+        });
+        
+        nameInput.disabled = true;
+        descInput.disabled = true;
+        csvInput.style.display = 'none';
+        wordPairTable.style.display = 'block';
+        
+        document.querySelector('#wordListDetailActions button[onclick="editWordList()"]').innerHTML = 
+            '<i class="fas fa-edit me-1"></i>編集';
+    }
+}
+
+function deleteWordList() {
+    if (!currentSelectedWordListId) return;
+    
+    const wordlistName = document.getElementById('editWordListName').value;
+    
+    if (!confirm(`辞書「${wordlistName}」とそのすべての履歴を削除しますか？この操作は取り消せません。`)) {
+        return;
+    }
+    
+    fetch(`/wordlists/api/wordlists/${currentSelectedWordListId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(data.message);
+            loadWordListData();
+            // Clear detail view
+            document.getElementById('wordListDetailTitle').textContent = '辞書詳細';
+            document.getElementById('wordListDetailActions').style.display = 'none';
+            document.getElementById('wordListDetailContent').innerHTML = 
+                '<p class="text-muted text-center">辞書を選択してください</p>';
+            currentSelectedWordListId = null;
+        } else {
+            showError('削除に失敗しました: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showError('削除に失敗しました: ' + error.message);
+    });
+}
+
+function createNewWordList() {
+    const name = prompt('辞書名を入力してください:');
+    if (!name) return;
+    
+    const description = prompt('説明を入力してください (省略可):') || '';
+    const csvContent = prompt('CSV内容を入力してください (形式: 誤字,正字):');
+    if (!csvContent) return;
+    
+    fetch('/wordlists/api/wordlists', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: name,
+            description: description,
+            csv_content: csvContent
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(`辞書「${data.wordlist.name}」が作成されました`);
+            loadWordListData();
+        } else {
+            showError('作成に失敗しました: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showError('作成に失敗しました: ' + error.message);
+    });
+}
+
+// User Management Functions
+function toggleUserManagement() {
+    const mainContent = document.getElementById('mainContent');
+    const wordListManagementContent = document.getElementById('wordListManagementContent');
+    const userManagementContent = document.getElementById('userManagementContent');
+    const mainButtons = document.getElementById('mainButtons');
+    
+    // Hide all other contents
+    mainContent.style.display = 'none';
+    wordListManagementContent.style.display = 'none';
+    mainButtons.style.display = 'none';
+    
+    // Show user management
+    userManagementContent.style.display = 'block';
+    loadUserData();
+}
+
+function showMainScreen() {
+    const mainContent = document.getElementById('mainContent');
+    const wordListManagementContent = document.getElementById('wordListManagementContent');
+    const userManagementContent = document.getElementById('userManagementContent');
+    const mainButtons = document.getElementById('mainButtons');
+    
+    // Show main content
+    mainContent.style.display = 'block';
+    mainButtons.style.display = 'block';
+    
+    // Hide all management screens
+    wordListManagementContent.style.display = 'none';
+    userManagementContent.style.display = 'none';
+}
+
+function switchTab(tabType) {
+    const userTab = document.getElementById('userTab');
+    const roleTab = document.getElementById('roleTab');
+    const userTabContent = document.getElementById('userTabContent');
+    const roleTabContent = document.getElementById('roleTabContent');
+    
+    if (tabType === 'user') {
+        userTab.classList.add('active');
+        roleTab.classList.remove('active');
+        userTabContent.classList.add('show', 'active');
+        roleTabContent.classList.remove('show', 'active');
+        loadUserData();
+    } else {
+        roleTab.classList.add('active');
+        userTab.classList.remove('active');
+        roleTabContent.classList.add('show', 'active');
+        userTabContent.classList.remove('show', 'active');
+        loadRoleData();
+    }
+}
+
+function loadUserData() {
+    // Load users from API
+    fetch('/admin/api/users')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const tbody = document.getElementById('userTableBody');
+                tbody.innerHTML = data.users.map(user => `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td><span class="badge ${user.role === 'Admin' ? 'bg-danger' : 'bg-primary'}">${user.role}</span></td>
+                        <td>${user.last_login || 'Never'}</td>
+                        <td><span class="badge ${user.is_active ? 'bg-success' : 'bg-secondary'}">${user.is_active ? 'アクティブ' : '無効'}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editUser(${user.id})">編集</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})">削除</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                showError('ユーザーデータの読み込みに失敗しました: ' + data.error);
+            }
+        })
+        .catch(error => {
+            showError('ユーザーデータの読み込みに失敗しました: ' + error.message);
+        });
+}
+
+function loadRoleData() {
+    // Load roles from API
+    fetch('/admin/api/roles')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const tbody = document.getElementById('roleTableBody');
+                tbody.innerHTML = data.roles.map(role => {
+                    const permissions = [];
+                    if (role.permissions.can_manage_users) permissions.push('ユーザー管理');
+                    if (role.permissions.can_manage_roles) permissions.push('ロール管理');
+                    if (role.permissions.can_view_all_transcripts) permissions.push('全体閲覧');
+                    if (role.permissions.can_manage_wordlists) permissions.push('辞書管理');
+                    if (role.permissions.can_use_api) permissions.push('API使用');
+                    
+                    return `
+                        <tr>
+                            <td><strong>${role.name}</strong></td>
+                            <td>${role.description || '説明なし'}</td>
+                            <td><span class="badge bg-info">${permissions.join(', ') || '権限なし'}</span></td>
+                            <td>${role.user_count}</td>
+                            <td>${role.created_at}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editRole(${role.id})">編集</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteRole(${role.id})">削除</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                showError('ロールデータの読み込みに失敗しました: ' + data.error);
+            }
+        })
+        .catch(error => {
+            showError('ロールデータの読み込みに失敗しました: ' + error.message);
+        });
+}
+
+// User/Role management functions
+function addUser() {
+    const username = prompt('ユーザー名を入力してください:');
+    if (!username) return;
+    
+    const email = prompt('メールアドレスを入力してください:');
+    if (!email) return;
+    
+    const password = prompt('パスワードを入力してください:');
+    if (!password) return;
+    
+    fetch('/admin/api/users', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            username: username,
+            email: email,
+            password: password,
+            is_active: true
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(`ユーザー ${data.user.username} が作成されました`);
+            loadUserData();
+        } else {
+            showError('ユーザー作成に失敗しました: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showError('ユーザー作成に失敗しました: ' + error.message);
+    });
+}
+
+function editUser(userId) {
+    // Simple edit - in production, use a proper form/modal
+    const newUsername = prompt(`ユーザー ${userId} の新しいユーザー名を入力してください:`);
+    if (!newUsername) return;
+    
+    fetch(`/admin/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            username: newUsername
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(`ユーザーが更新されました`);
+            loadUserData();
+        } else {
+            showError('ユーザー更新に失敗しました: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showError('ユーザー更新に失敗しました: ' + error.message);
+    });
+}
+
+function deleteUser(userId) {
+    if (!confirm(`ユーザー ${userId} を削除しますか？この操作は取り消せません。`)) {
+        return;
+    }
+    
+    fetch(`/admin/api/users/${userId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(data.message);
+            loadUserData();
+        } else {
+            showError('ユーザー削除に失敗しました: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showError('ユーザー削除に失敗しました: ' + error.message);
+    });
+}
+
+function addRole() {
+    const name = prompt('ロール名を入力してください:');
+    if (!name) return;
+    
+    const description = prompt('ロールの説明を入力してください:');
+    
+    fetch('/admin/api/roles', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: name,
+            description: description || '',
+            can_use_api: true
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(`ロール ${data.role.name} が作成されました`);
+            loadRoleData();
+        } else {
+            showError('ロール作成に失敗しました: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showError('ロール作成に失敗しました: ' + error.message);
+    });
+}
+
+function editRole(roleId) {
+    // Simple edit - in production, use a proper form/modal
+    const newDescription = prompt(`ロール ${roleId} の新しい説明を入力してください:`);
+    if (newDescription === null) return;
+    
+    fetch(`/admin/api/roles/${roleId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            description: newDescription
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(`ロールが更新されました`);
+            loadRoleData();
+        } else {
+            showError('ロール更新に失敗しました: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showError('ロール更新に失敗しました: ' + error.message);
+    });
+}
+
+function deleteRole(roleId) {
+    if (!confirm(`ロール ${roleId} を削除しますか？この操作は取り消せません。`)) {
+        return;
+    }
+    
+    fetch(`/admin/api/roles/${roleId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(data.message);
+            loadRoleData();
+        } else {
+            showError('ロール削除に失敗しました: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showError('ロール削除に失敗しました: ' + error.message);
+    });
+}
+
+// Resize functionality for left panel
+let isResizing = false;
+
+document.getElementById('resizeHandle').addEventListener('mousedown', function(e) {
+    isResizing = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    
+    document.addEventListener('mousemove', handleResize);
+    document.addEventListener('mouseup', stopResize);
+});
+
+function handleResize(e) {
+    if (!isResizing) return;
+    
+    const leftPanel = document.getElementById('leftPanel');
+    const container = leftPanel.parentElement;
+    const containerRect = container.getBoundingClientRect();
+    const newWidth = e.clientX - containerRect.left;
+    
+    // Set minimum and maximum width constraints
+    const minWidth = 250;
+    const maxWidth = containerRect.width * 0.5; // Maximum 50% of container width
+    
+    if (newWidth >= minWidth && newWidth <= maxWidth) {
+        leftPanel.style.width = newWidth + 'px';
+    }
+}
+
+function stopResize() {
+    isResizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    
+    document.removeEventListener('mousemove', handleResize);
+    document.removeEventListener('mouseup', stopResize);
+}
+</script>
+{% endblock %}

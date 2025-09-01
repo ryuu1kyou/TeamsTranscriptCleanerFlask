@@ -4,10 +4,10 @@ A Flask-based web application for cleaning and processing Microsoft Teams meetin
 
 ## Features
 
-- **Transcript Upload**: Upload Teams transcript files (.docx)
+- **Transcript Upload**: Upload Teams transcript text files (.txt) and optional typo correction list (.csv)
 - **AI-Powered Cleaning**: Uses OpenAI GPT to clean and format transcripts
 - **Word List Management**: Create and manage custom word lists for corrections
-- **Social Login**: Google, GitHub, and Microsoft OAuth integration
+- **Social Login**: Google OAuth integration
 - **Admin Dashboard**: Manage users and system settings
 - **Responsive Design**: Works on desktop and mobile devices
 - **Multi-language Support**: Japanese and English with browser-based auto-detection
@@ -46,40 +46,35 @@ cp .env.example .env
 Edit `.env` with your settings:
 
 ```bash
-# Database
-DATABASE_URL=mysql+pymysql://user:password@localhost/teams_transcript_cleaner
+# Database (MySQL)
+DB_NAME=transcript_cleaner_flask
+DB_USER=root
+DB_PASSWORD=your-mysql-password
+DB_HOST=localhost
+DB_PORT=3306
 SECRET_KEY=your-secret-key-here
 
 # OpenAI
 OPENAI_API_KEY=your-openai-api-key
 
-# Social Login (optional)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
-MICROSOFT_CLIENT_ID=your-microsoft-client-id
-MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret
+# Social Login (Google only)
+GOOGLE_OAUTH_CLIENT_ID=your-google-client-id
+GOOGLE_OAUTH_CLIENT_SECRET=your-google-client-secret
 ```
 
 ### 3. Database Setup
 
 ```bash
-# Initialize database
+# Initialize database (Alembic)
+./venv/bin/python -m flask db init
+./venv/bin/python -m flask db migrate -m "Initial"
 ./venv/bin/python -m flask db upgrade
 
+# Or (development quick start)
+./venv/bin/python -m flask init-db
+
 # Create admin user (optional)
-./venv/bin/python -c "
-from app import create_app, db
-from app.models import User
-app = create_app()
-with app.app_context():
-    admin = User(username='admin', email='admin@example.com', is_admin=True)
-    admin.set_password('admin123')
-    db.session.add(admin)
-    db.session.commit()
-    print('Admin user created: admin@example.com / admin123')
-"
+./venv/bin/python -m flask create-admin
 ```
 
 ### 4. Run Application
@@ -163,7 +158,7 @@ Users can manually switch languages using the language dropdown in the navigatio
 4. Name: `teams-transcript-cleaner-local`
 5. Add authorized redirect URI:
    ```
-   http://localhost:5000/auth/login/google/callback
+   http://localhost:5000/login/google/authorized
    ```
 6. Click **"Create"**
 
@@ -171,24 +166,6 @@ Users can manually switch languages using the language dropdown in the navigatio
 
 Copy the displayed **Client ID** and **Client Secret** to your `.env` file.
 
-### GitHub OAuth Setup
-
-1. Go to GitHub Settings → Developer settings → OAuth Apps
-2. Click **"New OAuth App"**
-3. Fill in:
-   - **Application name**: Teams Transcript Cleaner
-   - **Homepage URL**: http://localhost:5000
-   - **Authorization callback URL**: http://localhost:5000/auth/login/github/callback
-4. Copy **Client ID** and **Client Secret**
-
-### Microsoft OAuth Setup
-
-1. Go to Azure Portal → Azure Active Directory → App registrations
-2. Click **"New registration"**
-3. Fill in:
-   - **Name**: Teams Transcript Cleaner
-   - **Redirect URI**: http://localhost:5000/auth/login/microsoft/callback
-4. Copy **Application (client) ID** and create **Client Secret**
 
 ## Usage
 
@@ -196,7 +173,7 @@ Copy the displayed **Client ID** and **Client Secret** to your `.env` file.
 
 1. Register/login to the application
 2. Click **"Upload Transcript"**
-3. Select your Teams transcript file (.docx)
+3. Select your Teams transcript file (.txt) and optional typo list (.csv)
 4. Choose processing options
 5. Submit for processing
 
@@ -278,8 +255,10 @@ pybabel compile -d app/translations
 ### Database Issues
 
 ```bash
-# Reset database
-rm instance/app.db
+# Reset database (MySQL)
+mysql -u ${DB_USER:-root} -p -e "DROP DATABASE IF EXISTS ${DB_NAME:-transcript_cleaner_flask}; CREATE DATABASE ${DB_NAME:-transcript_cleaner_flask} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# Re-run migrations
 ./venv/bin/python -m flask db upgrade
 
 # Check migration status
@@ -299,19 +278,6 @@ rm instance/app.db
 - **Database connection errors**: Check DATABASE_URL in .env
 - **OpenAI API errors**: Verify OPENAI_API_KEY is set
 
-## Docker Support
-
-### Using Docker
-
-```bash
-# Build and run with Docker Compose
-docker-compose up --build
-
-# Or build manually
-docker build -t teams-transcript-cleaner .
-docker run -p 5000:5000 teams-transcript-cleaner
-```
-
 ## License
 
 MIT License - see LICENSE file for details
@@ -322,7 +288,7 @@ MIT License - see LICENSE file for details
 
 #### Account Linking Behavior
 
-- **Email Matching**: When you log in with a social account (Google/Facebook), the system automatically links to an existing account if the email address matches
+- **Email Matching**: When you log in with a social account (Google), the system automatically links to an existing account if the email address matches
 - **Username Generation**: If no existing account is found, a new account is created with a username derived from your email (e.g., "user" from "user@example.com")
 - **Username Conflicts**: If the generated username already exists, a number is appended (e.g., "user1", "user2")
 
@@ -352,11 +318,6 @@ MIT License - see LICENSE file for details
 - **Offline Access**: Enabled for potential future calendar integration
 - **Test Mode**: Requires adding test users in Google Cloud Console during development
 
-##### Facebook Login
-
-- **Scopes**: Requests access to your public profile and email address
-- **App Review**: Facebook apps require review for production use
-- **Test Users**: Use Facebook's test user feature for development
 
 #### Development Tips
 

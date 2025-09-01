@@ -2,12 +2,12 @@
 Social login routes using Flask-Dance.
 """
 import os
-from flask import Blueprint, url_for, redirect, flash, current_app
+from flask import Blueprint, url_for, redirect, flash, current_app, session
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_dance.contrib.facebook import make_facebook_blueprint, facebook
 from flask_login import login_user, current_user
 from app import db
-from app.models import User
+from app.models import User, TemporaryUser
 
 # Create social login blueprint
 social_bp = Blueprint('social', __name__)
@@ -37,48 +37,37 @@ facebook_bp = make_facebook_blueprint(
 
 def create_or_get_user(provider, user_info):
     """
-    Create new user or get existing user from social login.
+    Create temporary user or get existing DB user from social login.
     
     Args:
         provider: Social provider name ('google', 'facebook', etc.)
         user_info: Dictionary containing user information from provider
     
     Returns:
-        User object
+        User object (either TemporaryUser or regular User)
     """
-    # Check if user already exists with this email
-    user = User.query.filter_by(email=user_info['email']).first()
+    # Check if user already exists in DB with this email
+    db_user = User.query.filter_by(email=user_info['email']).first()
     
-    if user:
-        # Update social login info if not already set
-        if not user.social_id:
-            user.social_id = user_info['id']
-            user.social_provider = provider
+    if db_user:
+        # Return existing DB user (likely an admin or specially registered user)
+        if not db_user.social_id:
+            db_user.social_id = user_info['id']
+            db_user.social_provider = provider
             db.session.commit()
-        return user
+        return db_user
     
-    # Create new user
-    user = User(
-        username=user_info['email'].split('@')[0],
-        email=user_info['email'],
-        first_name=user_info.get('given_name', ''),
-        last_name=user_info.get('family_name', ''),
-        social_id=user_info['id'],
-        social_provider=provider,
-        is_verified=True  # Social login users are verified by default
-    )
+    # Create temporary user (not stored in DB)
+    temp_user = TemporaryUser(user_info, provider)
     
-    # Handle username conflicts
-    original_username = user.username
-    counter = 1
-    while User.query.filter_by(username=user.username).first():
-        user.username = f"{original_username}{counter}"
-        counter += 1
+    # Store temporary user data in session
+    session['temp_user_data'] = {
+        'id': temp_user.id,
+        'provider': provider,
+        'info': user_info
+    }
     
-    db.session.add(user)
-    db.session.commit()
-    
-    return user
+    return temp_user
 
 @social_bp.route("/login/google")
 def google_login():
@@ -105,7 +94,6 @@ def google_authorized():
         
         if user.is_active:
             login_user(user)
-            flash('Welcome!', 'success')
             return redirect(url_for('main.index'))
         else:
             flash('Your account has been deactivated', 'error')
@@ -144,7 +132,6 @@ def facebook_authorized():
         
         if user.is_active:
             login_user(user)
-            flash('Welcome!', 'success')
             return redirect(url_for('main.index'))
         else:
             flash('Your account has been deactivated', 'error')

@@ -50,11 +50,16 @@ class TranscriptProcessForm(FlaskForm):
             for t in user.transcripts.order_by('title')
         ]
         
-        # Populate wordlist choices
-        self.wordlist_id.choices = [(0, '使用しない')] + [
-            (w.id, f'{w.name} ({w.word_count}語)')
-            for w in user.wordlists.filter_by(is_active=True).order_by('name')
-        ]
+        # Populate wordlist choices (DBが未整備でも落ちないようにフェイルセーフ)
+        self.wordlist_id.choices = [(0, '使用しない')]
+        try:
+            self.wordlist_id.choices += [
+                (w.id, f'{w.name} ({w.word_count}語)')
+                for w in user.wordlists.filter_by(is_active=True).order_by('name')
+            ]
+        except Exception:
+            # 例: 初回起動で wordlists テーブル未作成など
+            pass
 
 
 class TranscriptEditForm(FlaskForm):

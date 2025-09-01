@@ -15,13 +15,9 @@ from processing.csv_parser import parse_csv_text
 
 @bp.route('/')
 @login_required
-def list():
-    """List all transcripts for the current user."""
-    page = request.args.get('page', 1, type=int)
-    transcripts = current_user.transcripts.order_by(TranscriptDocument.created_at.desc()).paginate(
-        page=page, per_page=20, error_out=False
-    )
-    return render_template('transcripts/list.html', transcripts=transcripts, title='トランスクリプト一覧')
+def index():
+    """Main transcript processing page matching main.png design."""
+    return render_template('transcripts/index.html', title='Teams Transcript Cleaner')
 
 
 @bp.route('/upload', methods=['GET', 'POST'])
@@ -71,68 +67,15 @@ def detail(id):
                          correction_jobs=correction_jobs, title=transcript.title)
 
 
-@bp.route('/process', methods=['GET', 'POST'])
+@bp.route('/list')
 @login_required
-def process():
-    """Main processing page."""
-    form = TranscriptProcessForm(current_user)
-    
-    if form.validate_on_submit():
-        transcript = TranscriptDocument.query.filter_by(
-            id=form.transcript_id.data, user_id=current_user.id
-        ).first_or_404()
-        
-        wordlist = None
-        if form.wordlist_id.data:
-            wordlist = WordList.query.filter_by(
-                id=form.wordlist_id.data, user_id=current_user.id
-            ).first_or_404()
-        
-        # Check user's API budget
-        estimated_cost = estimate_cost(transcript.content, form.model_used.data)
-        if not current_user.can_use_api(estimated_cost):
-            flash('API使用制限に達しています。制限を増やすか、管理者にお問い合わせください。', 'error')
-            return redirect(url_for('transcripts.process'))
-        
-        # Create correction job
-        job = CorrectionJob(
-            user_id=current_user.id,
-            transcript_id=transcript.id,
-            wordlist_id=wordlist.id if wordlist else None,
-            processing_mode=form.processing_mode.data,
-            custom_prompt=form.custom_prompt.data,
-            model_used=form.model_used.data
-        )
-        
-        db.session.add(job)
-        db.session.commit()
-        
-        # Process the transcript
-        correction_words = []
-        if wordlist:
-            correction_words = wordlist.get_word_pairs()
-        
-        try:
-            job.mark_as_processing()
-            
-            corrected_text, cost, input_tokens, output_tokens = correct_text(
-                processing_mode=form.processing_mode.data,
-                user_custom_prompt=form.custom_prompt.data,
-                input_text=transcript.content,
-                correction_words=correction_words,
-                model=form.model_used.data
-            )
-            
-            job.mark_as_completed(corrected_text, cost, input_tokens, output_tokens)
-            
-            flash(f'処理が完了しました。コスト: ${cost:.4f}', 'success')
-            return redirect(url_for('corrections.detail', id=job.id))
-            
-        except Exception as e:
-            job.mark_as_failed(str(e))
-            flash(f'処理中にエラーが発生しました: {str(e)}', 'error')
-    
-    return render_template('transcripts/process.html', form=form, title='処理実行')
+def list():
+    """List all transcripts for the current user."""
+    page = request.args.get('page', 1, type=int)
+    transcripts = current_user.transcripts.order_by(TranscriptDocument.created_at.desc()).paginate(
+        page=page, per_page=20, error_out=False
+    )
+    return render_template('transcripts/list.html', transcripts=transcripts, title='トランスクリプト一覧')
 
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])

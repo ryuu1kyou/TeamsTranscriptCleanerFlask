@@ -47,23 +47,40 @@ def create_app(config_name=None):
     # Configure Flask-Login
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'ログインが必要です。'
+    # Disable default flash message on redirect to login page
+    login_manager.login_message = None
     login_manager.login_message_category = 'info'
-    
+
     @login_manager.user_loader
     def load_user(user_id):
-        from app.models import User
-        return User.query.get(int(user_id))
+        from app.models import User, TemporaryUser
+        from flask import session
+        
+        # Check if it's a temporary user
+        if user_id.startswith('temp_'):
+            # Load temporary user from session
+            temp_user_data = session.get('temp_user_data')
+            if temp_user_data and temp_user_data.get('id') == user_id:
+                temp_user = TemporaryUser(temp_user_data['info'], temp_user_data['provider'])
+                # Restore API cost from session
+                temp_user.total_api_cost = temp_user_data.get('api_cost', 0.0)
+                return temp_user
+            return None
+        
+        # Regular DB user
+        try:
+            return User.query.get(int(user_id))
+        except (ValueError, TypeError):
+            return None
     
     # Register blueprints
     from app.auth import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
     
-    from app.auth.social import social_bp, google_bp, facebook_bp
+    from app.auth.social import social_bp, google_bp
     app.register_blueprint(social_bp, url_prefix='/auth')
     app.register_blueprint(google_bp, url_prefix='/login')
-    app.register_blueprint(facebook_bp, url_prefix='/login')
-    
+
     from app.transcripts import bp as transcripts_bp
     app.register_blueprint(transcripts_bp, url_prefix='/transcripts')
     

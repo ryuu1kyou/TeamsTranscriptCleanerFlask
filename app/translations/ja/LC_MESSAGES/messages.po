@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-07-20 15:54+0900\n"
+"POT-Creation-Date: 2025-09-01 09:02+0900\n"
 "PO-Revision-Date: 2025-07-20 15:55+0900\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ja\n"
@@ -18,106 +18,658 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: templates/base.html:4
+#: templates/base.html:7 templates/base.html:31
 msgid "Teams文字起こしクリーナー"
 msgstr "Teams文字起こしクリーナー"
 
-#: templates/base.html:28 templates/base.html:32
-msgid "言語"
-msgstr "言語"
+#: templates/auth/login_new.html:7
+msgid "TranscriptCleaner"
+msgstr "TranscriptCleaner"
 
-#: templates/base.html:29
-msgid "日本語"
-msgstr "日本語"
+#: templates/auth/login_new.html:46
+msgid "Microsoft Teams議事録を AIで自動訂正"
+msgstr "Microsoft Teams議事録を AIで自動訂正"
 
-#: templates/base.html:30
-msgid "English"
-msgstr "English"
-
-#: templates/base.html:40
-msgid "プロフィール"
-msgstr "プロフィール"
-
-#: templates/base.html:42
-msgid "ログアウト"
-msgstr "ログアウト"
-
-#: templates/base.html:46
+#: templates/auth/login_new.html:52
 msgid "ログイン"
 msgstr "ログイン"
 
-#: templates/base.html:48
-msgid "新規登録"
-msgstr "新規登録"
+#: templates/auth/login_new.html:57
+msgid "ユーザー名またはメールアドレス"
+msgstr "ユーザー名またはメールアドレス"
 
-#: templates/base.html:59
-msgid "文字起こし一覧"
-msgstr "文字起こし一覧"
+#: templates/auth/login_new.html:65
+msgid "パスワード"
+msgstr "パスワード"
 
-#: templates/base.html:63
-msgid "修正ジョブ一覧"
-msgstr "修正ジョブ一覧"
+#: templates/auth/login_new.html:74
+msgid "ログイン状態を保持する"
+msgstr "ログイン状態を保持する"
 
-#: templates/base.html:67
-msgid "単語リスト"
-msgstr "単語リスト"
+#: templates/auth/login_new.html:84
+msgid "または次の方法でログイン"
+msgstr "または次の方法でログイン"
 
-#: templates/base.html:87
-msgid "Teams文字起こしクリーナーへようこそ"
-msgstr "Teams文字起こしクリーナーへようこそ"
+#: templates/auth/login_new.html:90
+msgid "Googleでログイン"
+msgstr "Googleでログイン"
 
-#: templates/index.html:7
-msgid "Microsoft Teamsの文字起こしファイルをアップロードして、自動的に整形・修正します。"
-msgstr "Microsoft Teamsの文字起こしファイルをアップロードして、自動的に整形・修正します。"
+#: templates/transcripts/index.html:10
+msgid "設定"
+msgstr "設定"
 
-#: templates/index.html:10
-msgid "アップロードを開始"
-msgstr "アップロードを開始"
+#: templates/transcripts/index.html:13
+msgid "OpenAI APIキーが設定されています"
+msgstr "OpenAI APIキーが設定されています"
 
-#: templates/index.html:19
-msgid "主な機能"
-msgstr "主な機能"
+#: templates/transcripts/index.html:17
+msgid "コスト情報"
+msgstr "コスト情報"
 
-#: templates/index.html:23
-msgid "文字起こしファイルの自動アップロード"
-msgstr "文字起こしファイルの自動アップロード"
+#: templates/transcripts/index.html:19
+msgid "累計使用コスト"
+msgstr "累計使用コスト"
 
-#: templates/index.html:24
-msgid "不要なタイムスタンプの削除"
-msgstr "不要なタイムスタンプの削除"
+#: templates/transcripts/index.html:22
+msgid "現在のセッションコスト"
+msgstr "現在のセッションコスト"
 
-#: templates/index.html:25
-msgid "話者識別の整理"
-msgstr "話者識別の整理"
+#: templates/transcripts/index.html:24
+msgid "コスト履歴をリセット"
+msgstr "コスト履歴をリセット"
 
-#: templates/index.html:26
-msgid "誤字脱字の自動修正"
-msgstr "誤字脱字の自動修正"
+#: templates/transcripts/index.html:28
+msgid "OpenAIモデル選択"
+msgstr "OpenAIモデル選択"
 
-#: templates/index.html:27
-msgid "カスタム単語リストによる専門用語の処理"
-msgstr "カスタム単語リストによる専門用語の処理"
+#: templates/transcripts/index.html:40
+msgid "処理モード選択"
+msgstr "処理モード選択"
 
-#: templates/index.html:35
-msgid "使い方ガイド"
-msgstr "使い方ガイド"
+#: templates/transcripts/index.html:44
+msgid "誤字脱字修正"
+msgstr "誤字脱字修正"
 
-#: templates/index.html:38
-msgid "文字起こしファイルをアップロード"
-msgstr "文字起こしファイルをアップロード"
+#: templates/transcripts/index.html:50
+msgid "文法修正"
+msgstr "文法修正"
 
-#: templates/index.html:39
-msgid "自動処理を待つ"
-msgstr "自動処理を待つ"
+#: templates/transcripts/index.html:56
+msgid "要約"
+msgstr "要約"
 
-#: templates/index.html:40
-msgid "修正されたテキストを確認"
-msgstr "修正されたテキストを確認"
+#: templates/transcripts/index.html:62
+msgid "追加の指示（モードに応じて入力）"
+msgstr "追加の指示（モードに応じて入力）"
 
-#: templates/index.html:41
-msgid "必要に応じて手動で調整"
-msgstr "必要に応じて手動で調整"
+#: templates/transcripts/index.html:67
+msgid "訂正前辞書 (TXT) アップロード"
+msgstr "訂正前辞書 (TXT) アップロード"
 
-#: templates/index.html:42
-msgid "ダウンロード"
-msgstr "ダウンロード"
+#: templates/transcripts/index.html:69 templates/transcripts/index.html:79
+msgid "Drag and drop file here"
+msgstr "ファイルをここにドラッグ＆ドロップ"
+
+#: templates/transcripts/index.html:70
+msgid "Limit 200MB per file • TXT"
+msgstr "ファイルあたり200MBまで • TXT"
+
+#: templates/transcripts/index.html:72
+msgid "Browse files"
+msgstr "ファイルを選択"
+
+#: templates/transcripts/index.html:77
+msgid "誤字脱字一覧 (CSV) アップロード"
+msgstr "誤字脱字一覧 (CSV) アップロード"
+
+#: templates/transcripts/index.html:80
+msgid "Limit 200MB per file • CSV"
+msgstr "ファイルあたり200MBまで • CSV"
+
+#: templates/transcripts/index.html:89 templates/transcripts/index.html:167
+msgid "辞書一覧"
+msgstr "辞書一覧"
+
+#: templates/transcripts/index.html:97
+msgid "管理"
+msgstr "管理"
+
+#: templates/transcripts/index.html:118
+msgid "ユーザー"
+msgstr "ユーザー"
+
+#: templates/transcripts/index.html:120
+msgid "メイン画面"
+msgstr "メイン画面"
+
+#: templates/transcripts/index.html:122
+msgid "ログアウト"
+msgstr "ログアウト"
+
+#: templates/transcripts/index.html:131
+msgid "訂正前のファイル内容（編集不可）"
+msgstr "訂正前のファイル内容（編集不可）"
+
+#: templates/transcripts/index.html:133
+msgid "テキストファイルをアップロードしてください"
+msgstr "テキストファイルをアップロードしてください"
+
+#: templates/transcripts/index.html:139
+msgid "訂正後のファイル内容（手修正可）"
+msgstr "訂正後のファイル内容（手修正可）"
+
+#: templates/transcripts/index.html:141
+msgid "訂正実行後に結果が表示されます"
+msgstr "訂正実行後に結果が表示されます"
+
+#: templates/transcripts/index.html:151
+msgid "辞書管理"
+msgstr "辞書管理"
+
+#: templates/transcripts/index.html:154
+msgid "新規作成"
+msgstr "新規作成"
+
+#: templates/transcripts/index.html:157
+msgid "戻る"
+msgstr "戻る"
+
+#: templates/transcripts/index.html:207
+msgid "ユーザー管理"
+msgstr "ユーザー管理"
+
+#: templates/transcripts/index.html:212
+msgid "ロール管理"
+msgstr "ロール管理"
+
+#: templates/transcripts/index.html:222
+msgid "ユーザー一覧"
+msgstr "ユーザー一覧"
+
+#: templates/transcripts/index.html:224
+msgid "新規ユーザー追加"
+msgstr "新規ユーザー追加"
+
+#: templates/transcripts/index.html:233
+msgid "ユーザー名"
+msgstr "ユーザー名"
+
+#: templates/transcripts/index.html:234
+msgid "メール"
+msgstr "メール"
+
+#: templates/transcripts/index.html:236
+msgid "最終ログイン"
+msgstr "最終ログイン"
+
+#: templates/transcripts/index.html:237
+msgid "ステータス"
+msgstr "ステータス"
+
+#: templates/transcripts/index.html:288
+msgid "訂正後テキストを訂正前にコピー"
+msgstr "訂正後テキストを訂正前にコピー"
+
+#: templates/transcripts/index.html:293
+msgid "最終確定をダウンロード"
+msgstr "最終確定をダウンロード"
+
+#~ msgid "言語"
+#~ msgstr "言語"
+
+#~ msgid "日本語"
+#~ msgstr "日本語"
+
+#~ msgid "English"
+#~ msgstr "English"
+
+#~ msgid "プロフィール"
+#~ msgstr "プロフィール"
+
+#~ msgid "ログアウト"
+#~ msgstr "ログアウト"
+
+#~ msgid "ログイン"
+#~ msgstr "ログイン"
+
+#~ msgid "新規登録"
+#~ msgstr "新規登録"
+
+#~ msgid "文字起こし一覧"
+#~ msgstr "文字起こし一覧"
+
+#~ msgid "修正ジョブ一覧"
+#~ msgstr "修正ジョブ一覧"
+
+#~ msgid "単語リスト"
+#~ msgstr "単語リスト"
+
+#~ msgid "Teams文字起こしクリーナーへようこそ"
+#~ msgstr "Teams文字起こしクリーナーへようこそ"
+
+#~ msgid "Microsoft Teamsの文字起こしファイルをアップロードして、自動的に整形・修正します。"
+#~ msgstr "Microsoft Teamsの文字起こしファイルをアップロードして、自動的に整形・修正します。"
+
+#~ msgid "アップロードを開始"
+#~ msgstr "アップロードを開始"
+
+#~ msgid "主な機能"
+#~ msgstr "主な機能"
+
+#~ msgid "文字起こしファイルの自動アップロード"
+#~ msgstr "文字起こしファイルの自動アップロード"
+
+#~ msgid "不要なタイムスタンプの削除"
+#~ msgstr "不要なタイムスタンプの削除"
+
+#~ msgid "話者識別の整理"
+#~ msgstr "話者識別の整理"
+
+#~ msgid "誤字脱字の自動修正"
+#~ msgstr "誤字脱字の自動修正"
+
+#~ msgid "カスタム単語リストによる専門用語の処理"
+#~ msgstr "カスタム単語リストによる専門用語の処理"
+
+#~ msgid "使い方ガイド"
+#~ msgstr "使い方ガイド"
+
+#~ msgid "文字起こしファイルをアップロード"
+#~ msgstr "文字起こしファイルをアップロード"
+
+#~ msgid "自動処理を待つ"
+#~ msgstr "自動処理を待つ"
+
+#~ msgid "修正されたテキストを確認"
+#~ msgstr "修正されたテキストを確認"
+
+#~ msgid "必要に応じて手動で調整"
+#~ msgstr "必要に応じて手動で調整"
+
+#~ msgid "ダウンロード"
+#~ msgstr "ダウンロード"
+
+#~ msgid "{editor}: Editing failed"
+#~ msgstr ""
+
+#~ msgid "{editor}: Editing failed: {e}"
+#~ msgstr ""
+
+#~ msgid "{text} {deprecated_message}"
+#~ msgstr ""
+
+#~ msgid "Options"
+#~ msgstr ""
+
+#~ msgid "Got unexpected extra argument ({args})"
+#~ msgid_plural "Got unexpected extra arguments ({args})"
+#~ msgstr[0] ""
+
+#~ msgid "DeprecationWarning: The command {name!r} is deprecated.{extra_message}"
+#~ msgstr ""
+
+#~ msgid "Aborted!"
+#~ msgstr ""
+
+#~ msgid "Commands"
+#~ msgstr ""
+
+#~ msgid "Missing command."
+#~ msgstr ""
+
+#~ msgid "No such command {name!r}."
+#~ msgstr ""
+
+#~ msgid "Value must be an iterable."
+#~ msgstr ""
+
+#~ msgid "Takes {nargs} values but 1 was given."
+#~ msgid_plural "Takes {nargs} values but {len} were given."
+#~ msgstr[0] ""
+
+#~ msgid ""
+#~ "DeprecationWarning: The {param_type} {name!r} "
+#~ "is deprecated.{extra_message}"
+#~ msgstr ""
+
+#~ msgid "env var: {var}"
+#~ msgstr ""
+
+#~ msgid "default: {default}"
+#~ msgstr ""
+
+#~ msgid "required"
+#~ msgstr ""
+
+#~ msgid "(dynamic)"
+#~ msgstr ""
+
+#~ msgid "%(prog)s, version %(version)s"
+#~ msgstr ""
+
+#~ msgid "Show the version and exit."
+#~ msgstr ""
+
+#~ msgid "Show this message and exit."
+#~ msgstr ""
+
+#~ msgid "Error: {message}"
+#~ msgstr ""
+
+#~ msgid "Try '{command} {option}' for help."
+#~ msgstr ""
+
+#~ msgid "Invalid value: {message}"
+#~ msgstr ""
+
+#~ msgid "Invalid value for {param_hint}: {message}"
+#~ msgstr ""
+
+#~ msgid "Missing argument"
+#~ msgstr ""
+
+#~ msgid "Missing option"
+#~ msgstr ""
+
+#~ msgid "Missing parameter"
+#~ msgstr ""
+
+#~ msgid "Missing {param_type}"
+#~ msgstr ""
+
+#~ msgid "Missing parameter: {param_name}"
+#~ msgstr ""
+
+#~ msgid "No such option: {name}"
+#~ msgstr ""
+
+#~ msgid "Did you mean {possibility}?"
+#~ msgid_plural "(Possible options: {possibilities})"
+#~ msgstr[0] ""
+
+#~ msgid "unknown error"
+#~ msgstr ""
+
+#~ msgid "Could not open file {filename!r}: {message}"
+#~ msgstr ""
+
+#~ msgid "Usage:"
+#~ msgstr ""
+
+#~ msgid "Argument {name!r} takes {nargs} values."
+#~ msgstr ""
+
+#~ msgid "Option {name!r} does not take a value."
+#~ msgstr ""
+
+#~ msgid "Option {name!r} requires an argument."
+#~ msgid_plural "Option {name!r} requires {nargs} arguments."
+#~ msgstr[0] ""
+
+#~ msgid "Shell completion is not supported for Bash versions older than 4.4."
+#~ msgstr ""
+
+#~ msgid "Couldn't detect Bash version, shell completion is not supported."
+#~ msgstr ""
+
+#~ msgid "Repeat for confirmation"
+#~ msgstr ""
+
+#~ msgid "Error: The value you entered was invalid."
+#~ msgstr ""
+
+#~ msgid "Error: {e.message}"
+#~ msgstr ""
+
+#~ msgid "Error: The two entered values do not match."
+#~ msgstr ""
+
+#~ msgid "Error: invalid input"
+#~ msgstr ""
+
+#~ msgid "Press any key to continue..."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Choose from:\n"
+#~ "\t{choices}"
+#~ msgstr ""
+
+#~ msgid "{value!r} is not {choice}."
+#~ msgid_plural "{value!r} is not one of {choices}."
+#~ msgstr[0] ""
+
+#~ msgid "{value!r} does not match the format {format}."
+#~ msgid_plural "{value!r} does not match the formats {formats}."
+#~ msgstr[0] ""
+
+#~ msgid "{value!r} is not a valid {number_type}."
+#~ msgstr ""
+
+#~ msgid "{value} is not in the range {range}."
+#~ msgstr ""
+
+#~ msgid "{value!r} is not a valid boolean."
+#~ msgstr ""
+
+#~ msgid "{value!r} is not a valid UUID."
+#~ msgstr ""
+
+#~ msgid "file"
+#~ msgstr ""
+
+#~ msgid "directory"
+#~ msgstr ""
+
+#~ msgid "path"
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} does not exist."
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} is a file."
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} is a directory."
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} is not readable."
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} is not writable."
+#~ msgstr ""
+
+#~ msgid "{name} {filename!r} is not executable."
+#~ msgstr ""
+
+#~ msgid "{len_type} values are required, but {len_value} was given."
+#~ msgid_plural "{len_type} values are required, but {len_value} were given."
+#~ msgstr[0] ""
+
+#~ msgid "Config"
+#~ msgstr ""
+
+#~ msgid "flask.g"
+#~ msgstr ""
+
+#~ msgid "flask.g content"
+#~ msgstr ""
+
+#~ msgid "HTTP Headers"
+#~ msgstr ""
+
+#~ msgid "Logging"
+#~ msgstr ""
+
+#~ msgid "Log Messages"
+#~ msgstr ""
+
+#~ msgid "Request Vars"
+#~ msgstr ""
+
+#~ msgid "Route List"
+#~ msgstr ""
+
+#~ msgid "SQLAlchemy"
+#~ msgstr ""
+
+#~ msgid "SQLAlchemy queries"
+#~ msgstr ""
+
+#~ msgid "Templates"
+#~ msgstr ""
+
+#~ msgid "Time"
+#~ msgstr ""
+
+#~ msgid "Resource Usage"
+#~ msgstr ""
+
+#~ msgid "User CPU time"
+#~ msgstr ""
+
+#~ msgid "System CPU time"
+#~ msgstr ""
+
+#~ msgid "Total CPU time"
+#~ msgstr ""
+
+#~ msgid "Elapsed time"
+#~ msgstr ""
+
+#~ msgid "Context switches"
+#~ msgstr ""
+
+#~ msgid "Versions"
+#~ msgstr ""
+
+#~ msgid "This field is required."
+#~ msgstr ""
+
+#~ msgid "File does not have an approved extension: {extensions}"
+#~ msgstr ""
+
+#~ msgid "File does not have an approved extension."
+#~ msgstr ""
+
+#~ msgid "File must be between {min_size} and {max_size} bytes."
+#~ msgstr ""
+
+#~ msgid "Attempting to connect to qpid with SASL mechanism %s"
+#~ msgstr ""
+
+#~ msgid "Connected to qpid with SASL mechanism %s"
+#~ msgstr ""
+
+#~ msgid "Unable to connect to qpid with SASL mechanism %s"
+#~ msgstr ""
+
+#~ msgid "Invalid field name '%s'."
+#~ msgstr ""
+
+#~ msgid "Field must be equal to %(other_name)s."
+#~ msgstr ""
+
+#~ msgid "Field must be at least %(min)d character long."
+#~ msgid_plural "Field must be at least %(min)d characters long."
+#~ msgstr[0] ""
+
+#~ msgid "Field cannot be longer than %(max)d character."
+#~ msgid_plural "Field cannot be longer than %(max)d characters."
+#~ msgstr[0] ""
+
+#~ msgid "Field must be exactly %(max)d character long."
+#~ msgid_plural "Field must be exactly %(max)d characters long."
+#~ msgstr[0] ""
+
+#~ msgid "Field must be between %(min)d and %(max)d characters long."
+#~ msgstr ""
+
+#~ msgid "Number must be at least %(min)s."
+#~ msgstr ""
+
+#~ msgid "Number must be at most %(max)s."
+#~ msgstr ""
+
+#~ msgid "Number must be between %(min)s and %(max)s."
+#~ msgstr ""
+
+#~ msgid "Invalid input."
+#~ msgstr ""
+
+#~ msgid "Invalid email address."
+#~ msgstr ""
+
+#~ msgid "Invalid IP address."
+#~ msgstr ""
+
+#~ msgid "Invalid Mac address."
+#~ msgstr ""
+
+#~ msgid "Invalid URL."
+#~ msgstr ""
+
+#~ msgid "Invalid UUID."
+#~ msgstr ""
+
+#~ msgid "Invalid value, must be one of: %(values)s."
+#~ msgstr ""
+
+#~ msgid "Invalid value, can't be any of: %(values)s."
+#~ msgstr ""
+
+#~ msgid "This field cannot be edited"
+#~ msgstr ""
+
+#~ msgid "This field is disabled and cannot have a value"
+#~ msgstr ""
+
+#~ msgid "Invalid CSRF Token."
+#~ msgstr ""
+
+#~ msgid "CSRF token missing."
+#~ msgstr ""
+
+#~ msgid "CSRF failed."
+#~ msgstr ""
+
+#~ msgid "CSRF token expired."
+#~ msgstr ""
+
+#~ msgid "Invalid Choice: could not coerce."
+#~ msgstr ""
+
+#~ msgid "Choices cannot be None."
+#~ msgstr ""
+
+#~ msgid "Not a valid choice."
+#~ msgstr ""
+
+#~ msgid "Invalid choice(s): one or more data inputs could not be coerced."
+#~ msgstr ""
+
+#~ msgid "'%(value)s' is not a valid choice for this field."
+#~ msgid_plural "'%(value)s' are not valid choices for this field."
+#~ msgstr[0] ""
+
+#~ msgid "Not a valid datetime value."
+#~ msgstr ""
+
+#~ msgid "Not a valid date value."
+#~ msgstr ""
+
+#~ msgid "Not a valid time value."
+#~ msgstr ""
+
+#~ msgid "Not a valid week value."
+#~ msgstr ""
+
+#~ msgid "Not a valid integer value."
+#~ msgstr ""
+
+#~ msgid "Not a valid decimal value."
+#~ msgstr ""
+
+#~ msgid "Not a valid float value."
+#~ msgstr ""
+

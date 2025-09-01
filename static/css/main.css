@@ -126,3 +126,92 @@ footer {
     background-color: #ffc107;
     color: #212529;
 }
+
+/* Layout specific styles for transcript processing page */
+.vh-100 {
+    height: 100vh !important;
+}
+
+.row.vh-100 {
+    margin: 0;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.row.vh-100 > div {
+    padding: 0;
+}
+
+#leftPanel {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#rightPanel {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#mainContent {
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+#mainContent .row {
+    height: 100%;
+    margin: 0;
+}
+
+#mainContent .col-6 {
+    height: 100%;
+    padding: 0 0.75rem;
+}
+
+.h-100.d-flex.flex-column {
+    height: 100% !important;
+}
+
+.flex-fill.bg-light {
+    overflow: hidden;
+}
+
+.form-control.h-100 {
+    height: 100% !important;
+    border: none;
+    outline: none;
+    resize: none;
+}
+
+/* Responsive layout fixes */
+@media (max-width: 992px) {
+    .row.vh-100 {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    #leftPanel {
+        width: 100% !important;
+        min-width: auto;
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+    
+    #rightPanel {
+        height: auto;
+        min-height: 50vh;
+    }
+    
+    #mainContent .row {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    #mainContent .col-6 {
+        width: 100%;
+        height: 300px;
+        margin-bottom: 1rem;
+    }
+}

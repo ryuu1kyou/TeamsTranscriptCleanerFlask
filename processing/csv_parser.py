@@ -1,83 +1,157 @@
 """
-CSV parser service for Flask application.
+CSV parser for Teams transcript files.
 """
 import csv
 import io
-from typing import List, Dict
+import re
+from typing import List, Dict, Any
 
 
-def parse_csv_text(csv_text: str) -> List[Dict[str, str]]:
+def parse_csv_text(csv_content: str) -> Dict[str, Any]:
     """
-    Parse word correction list from CSV text.
-
-    Args:
-        csv_text: CSV format text
-
-    Returns:
-        Word correction list [{"incorrect": "word", "correct": "word"}, ...]
-    """
-    result = []
-
-    try:
-        # Process string as CSV
-        csv_file = io.StringIO(csv_text)
-        reader = csv.reader(csv_file)
-
-        # Skip header row
-        header = next(reader, None)
-
-        # Process each row
-        for row in reader:
-            if len(row) >= 2 and row[0].strip() and row[1].strip():
-                result.append({
-                    "incorrect": row[0].strip(),
-                    "correct": row[1].strip()
-                })
-    except Exception as e:
-        print(f"Error occurred while parsing CSV text: {e}")
-        # Return empty list if error occurs
-        return []
-
-    return result
-
-
-def validate_csv_format(csv_text: str) -> List[str]:
-    """
-    Validate CSV format and return list of errors.
-
-    Args:
-        csv_text: CSV format text
-
-    Returns:
-        List of validation error messages
-    """
-    errors = []
+    Parse Teams transcript CSV content and extract text.
     
-    if not csv_text.strip():
-        errors.append("CSV content cannot be empty")
-        return errors
-
+    Args:
+        csv_content: Raw CSV content as string
+        
+    Returns:
+        Dictionary with parsed content and metadata
+    """
     try:
-        csv_file = io.StringIO(csv_text)
-        reader = csv.reader(csv_file)
+        # Create a StringIO object from the CSV content
+        csv_file = io.StringIO(csv_content)
+        csv_reader = csv.reader(csv_file)
         
-        # Check header
-        header = next(reader, None)
-        if not header or len(header) < 2:
-            errors.append("CSV must have at least 2 columns")
+        # Skip header if present
+        headers = next(csv_reader, None)
+        if not headers:
+            return {
+                'success': False,
+                'error': 'Empty CSV file',
+                'text': '',
+                'metadata': {}
+            }
         
-        row_count = 0
-        for row_num, row in enumerate(reader, start=2):
-            if len(row) < 2:
-                errors.append(f"Row {row_num}: Must have at least 2 columns")
-            elif not row[0].strip() or not row[1].strip():
-                errors.append(f"Row {row_num}: Both columns must have values")
-            row_count += 1
+        # Extract text content
+        transcript_lines = []
+        speaker_count = 0
+        timestamp_pattern = re.compile(r'\d{1,2}:\d{2}:\d{2}')
         
-        if row_count == 0:
-            errors.append("CSV must contain at least one data row")
+        for row in csv_reader:
+            if len(row) >= 2:  # Assuming timestamp and speaker/text columns
+                # Simple text extraction - can be enhanced based on actual CSV format
+                text_content = ' '.join(row[1:]).strip()
+                if text_content:
+                    # Remove timestamps if present
+                    cleaned_text = timestamp_pattern.sub('', text_content).strip()
+                    if cleaned_text:
+                        transcript_lines.append(cleaned_text)
+                        
+        # Join all lines
+        full_text = '\n'.join(transcript_lines)
+        
+        # Calculate basic statistics
+        word_count = len(full_text.split())
+        character_count = len(full_text)
+        
+        return {
+            'success': True,
+            'text': full_text,
+            'metadata': {
+                'word_count': word_count,
+                'character_count': character_count,
+                'line_count': len(transcript_lines),
+                'original_format': 'csv'
+            }
+        }
+        
+    except Exception as e:
+        return {
+            'success': False,
+            'error': f'CSV parsing error: {str(e)}',
+            'text': '',
+            'metadata': {}
+        }
+
+
+def clean_transcript_text(text: str) -> str:
+    """
+    Clean transcript text by removing unnecessary elements.
+    
+    Args:
+        text: Raw transcript text
+        
+    Returns:
+        Cleaned text
+    """
+    if not text:
+        return ''
+    
+    # Remove common Teams transcript artifacts
+    cleaned = text
+    
+    # Remove timestamps (various formats)
+    timestamp_patterns = [
+        r'\d{1,2}:\d{2}:\d{2}\.?\d*',  # HH:MM:SS or HH:MM:SS.mmm
+        r'\[\d{1,2}:\d{2}:\d{2}\]',   # [HH:MM:SS]
+        r'\(\d{1,2}:\d{2}:\d{2}\)',   # (HH:MM:SS)
+    ]
+    
+    for pattern in timestamp_patterns:
+        cleaned = re.sub(pattern, '', cleaned)
+    
+    # Remove speaker labels (simple patterns)
+    speaker_patterns = [
+        r'^[A-Za-z\s]+:\s*',  # Speaker Name:
+        r'^[A-Za-z\s]+\s*>>\s*',  # Speaker Name >>
+    ]
+    
+    lines = cleaned.split('\n')
+    processed_lines = []
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
             
-    except Exception as e:
-        errors.append(f"CSV parsing error: {str(e)}")
+        # Apply speaker pattern removal
+        for pattern in speaker_patterns:
+            line = re.sub(pattern, '', line, flags=re.MULTILINE)
+        
+        # Remove extra whitespace
+        line = re.sub(r'\s+', ' ', line).strip()
+        
+        if line:
+            processed_lines.append(line)
     
-    return errors
+    return '\n'.join(processed_lines)
+
+
+def extract_speakers(text: str) -> List[str]:
+    """
+    Extract unique speaker names from transcript text.
+    
+    Args:
+        text: Transcript text
+        
+    Returns:
+        List of unique speaker names
+    """
+    speakers = set()
+    
+    # Pattern to match speaker names
+    speaker_patterns = [
+        r'^([A-Za-z\s]+):\s*',  # Speaker Name:
+        r'^([A-Za-z\s]+)\s*>>\s*',  # Speaker Name >>
+    ]
+    
+    lines = text.split('\n')
+    for line in lines:
+        for pattern in speaker_patterns:
+            match = re.match(pattern, line.strip())
+            if match:
+                speaker_name = match.group(1).strip()
+                if speaker_name and len(speaker_name) > 1:
+                    speakers.add(speaker_name)
+    
+    return sorted(list(speakers))

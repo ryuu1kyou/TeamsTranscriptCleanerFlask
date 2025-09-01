@@ -8,9 +8,10 @@ Flask Edition は軽量性と柔軟性を重視したトランスクリプト処
 
 ### プロジェクト背景
 - **開発目的**: 軽量で高速な Flask ベースのトランスクリプト処理システム
-- **設計思想**: シンプルさと柔軟性の両立
-- **開発期間**: 2025年7月
+- **設計思想**: シンプルさと柔軟性の両立、セキュリティとスケーラビリティの重視
+- **開発期間**: 2025年7月～8月
 - **開発者**: Claude AI (Anthropic)
+- **最終更新**: 2025年8月31日
 
 ### Flask アーキテクチャの特徴
 - **軽量性**: 最小限の依存関係で高速起動
@@ -569,4 +570,176 @@ const sessionCostElement = document.querySelector('.text-muted.small.mb-2');
 **作成者**: Claude AI (Anthropic)  
 **最終更新**: 2025年7月13日（トラブルシューティング追加）  
 **バージョン**: 1.1.0  
+**Framework**: Flask 3.0.0
+
+---
+
+## 最新機能実装 (2025年8月31日更新)
+
+### 1. ユーザー管理・ロール管理システム
+
+#### 実装概要
+- **完全なRBAC（Role-Based Access Control）**システムを実装
+- 管理者権限による包括的なユーザー・ロール管理機能
+- セッションベースの一時ユーザー認証（ソーシャルログイン用）
+
+#### 主要機能
+- **ユーザー管理**: CRUD操作、権限変更、アクティブ状態管理
+- **ロール管理**: 権限の細かい制御、カスタムロール作成
+- **権限システム**: can_manage_users, can_manage_roles, can_view_all_transcripts, can_manage_wordlists, can_use_api
+- **管理UI**: リアルタイム更新、直感的なインターフェース
+
+#### 技術実装詳細
+```python
+# ロール管理モデル
+class Role(db.Model):
+    can_manage_users = db.Column(db.Boolean, default=False)
+    can_manage_roles = db.Column(db.Boolean, default=False)
+    can_view_all_transcripts = db.Column(db.Boolean, default=False)
+    can_manage_wordlists = db.Column(db.Boolean, default=False)
+    can_use_api = db.Column(db.Boolean, default=True)
+
+# 権限チェックデコレータ
+@admin_required
+def admin_function():
+    pass
+```
+
+### 2. セッションベース一時ユーザーシステム
+
+#### 設計思想
+ソーシャルログインユーザーをDBに永続化せず、セッションのみで管理することで：
+- **プライバシー保護**: 個人情報の永続化を回避
+- **軽量運用**: データベース肥大化の防止
+- **セキュリティ**: 一時的なアクセス権限での利用
+
+#### 実装詳細
+```python
+class TemporaryUser:
+    """DB保存なしの一時ユーザー"""
+    def __init__(self, user_info, provider):
+        self.id = f"temp_{provider}_{user_info['id']}"
+        self.api_usage_limit = 5.0  # 制限された使用量
+        # セッションのみに保存
+```
+
+### 3. WordList管理システム
+
+#### 機能概要
+- **版本管理**: 辞書の変更履歴を自動追跡
+- **視覚的管理**: 左右分割レイアウトでの直感的操作
+- **リアルタイム編集**: インライン編集とプレビュー
+
+#### 主要機能
+- 辞書一覧表示（使用回数、最終使用日付込み）
+- 詳細表示（CSV内容のテーブル表示）
+- インライン編集（名前、説明、CSV内容）
+- 版本履歴表示
+- CRUD操作（作成、読み込み、更新、削除）
+
+#### API設計
+```
+GET    /wordlists/api/wordlists          # 一覧取得
+GET    /wordlists/api/wordlists/<id>     # 詳細取得  
+POST   /wordlists/api/wordlists          # 新規作成
+PUT    /wordlists/api/wordlists/<id>     # 更新
+DELETE /wordlists/api/wordlists/<id>     # 削除
+```
+
+### 4. 統合UI設計
+
+#### シングルページアプリケーション
+- **transcripts/index.html**: メイン画面、WordList管理、ユーザー管理を統合
+- **動的コンテンツ切り替え**: JavaScript による滑らかな画面遷移
+- **権限ベース表示制御**: ユーザー権限に応じたUI要素の動的表示/非表示
+
+#### レスポンシブレイアウト
+- **左パネル**: 設定・辞書・管理機能
+- **右パネル**: メインコンテンツエリア
+- **リサイズ対応**: パネル幅の動的調整
+
+### 5. 認証・言語システム
+
+#### 言語切り替え仕様
+- **ログイン時のみ設定**: セキュリティと一貫性のため、ログイン後の言語変更は不可
+- **セッション永続化**: ログイン時の言語選択をセッション全体で維持
+- **翻訳対応**: Flask-Babel による日英2言語対応
+
+#### ソーシャル認証
+- **Google OAuth**: 簡単ログイン機能
+- **一時セッション**: DB保存なしの軽量認証
+- **制限付きアクセス**: API使用量制限（5.0ドル）
+
+### 6. セキュリティ強化
+
+#### 実装されたセキュリティ機能
+- **CSRF保護**: Flask-WTF による自動保護
+- **権限ベースアクセス制御**: 細かい権限管理
+- **セッション管理**: 安全な認証状態管理
+- **入力検証**: 全フォーム入力の厳密な検証
+- **SQL インジェクション対策**: SQLAlchemy ORM使用
+
+#### 管理機能セキュリティ
+- 自己削除・自己無効化の防止
+- 重要ロール（Admin, User）の削除防止
+- 使用中ロールの削除防止
+
+### 7. パフォーマンス最適化
+
+#### フロントエンド最適化
+- **リアルタイムAPI通信**: 非同期データ更新
+- **効率的DOM操作**: 必要最小限の要素更新
+- **キャッシュ戦略**: セッションデータの効率的活用
+
+#### バックエンド最適化
+- **Blueprint分離**: 機能単位でのモジュール化
+- **データベースクエリ最適化**: 効率的な関連データ取得
+- **API レスポンス最適化**: 必要なデータのみの返却
+
+### 8. 開発・運用改善
+
+#### ファイル構成最適化
+不要ファイルの削除により、プロジェクト構成を最適化：
+- 削除: process.html, detail.html, upload.html等の未使用テンプレート
+- 削除: Docker関連ファイル（.dockerignore等）
+- 削除: 未使用のBlueprint（corrections）
+- 統合: メイン機能を単一テンプレートに集約
+
+#### 保守性向上
+- **統一されたAPI設計**: 一貫したレスポンス形式
+- **エラーハンドリング**: 包括的なエラー処理と通知
+- **コード分離**: ビジネスロジックとUI の明確な分離
+
+---
+
+## 現在のシステム構成（2025年8月31日時点）
+
+### アクティブ機能
+- ✅ ユーザー・ロール管理システム
+- ✅ WordList管理・版本管理
+- ✅ セッションベース一時ユーザー
+- ✅ OpenAI API統合（転写処理）
+- ✅ ソーシャル認証（Google）
+- ✅ 多言語対応（日英）
+- ✅ 権限ベースアクセス制御
+
+### 技術スタック
+- **バックエンド**: Flask 3.0.0, SQLAlchemy, Flask-Login, Flask-WTF
+- **認証**: Flask-Login, Flask-Dance (OAuth)
+- **データベース**: MySQL 8.0 with PyMySQL
+- **フロントエンド**: Bootstrap 5, Vanilla JavaScript
+- **翻訳**: Flask-Babel
+- **API**: OpenAI GPT-4o/GPT-4o-mini
+
+### デプロイ環境
+- **開発**: Flask Development Server
+- **本番推奨**: Gunicorn + Nginx
+- **データベース**: MySQL 8.0+
+- **Python**: 3.12+
+
+---
+
+**作成者**: Claude AI (Anthropic)  
+**最終更新**: 2025年8月31日  
+**バージョン**: 2.0.0 (統合UI・管理機能完全版)  
 **Framework**: Flask 3.0.0

@@ -1,71 +1,96 @@
 """
 Routes for correction job management.
 """
-from flask import render_template, flash, redirect, url_for, request, make_response
+from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import login_required, current_user
 from app import db
 from app.corrections import bp
 from app.models import CorrectionJob, TranscriptDocument
+from processing.openai_service import correct_text, estimate_cost
 
 
 @bp.route('/')
 @login_required
 def list():
-    """List all correction jobs for the current user."""
-    page = request.args.get('page', 1, type=int)
-    jobs = current_user.correction_jobs.order_by(CorrectionJob.created_at.desc()).paginate(
-        page=page, per_page=20, error_out=False
-    )
-    return render_template('corrections/list.html', jobs=jobs, title='修正ジョブ一覧')
+    """Display correction jobs for current user."""
+    jobs = CorrectionJob.query.filter_by(user_id=current_user.id)\
+                             .order_by(CorrectionJob.created_at.desc())\
+                             .all()
+    return render_template('corrections/list.html', jobs=jobs)
 
 
-@bp.route('/<int:id>')
+@bp.route('/<int:job_id>')
 @login_required
-def detail(id):
-    """Display correction job details."""
-    job = CorrectionJob.query.filter_by(id=id, user_id=current_user.id).first_or_404()
-    return render_template('corrections/detail.html', job=job, title=f'修正ジョブ #{job.id}')
+def detail(job_id):
+    """Display detailed view of a correction job."""
+    job = CorrectionJob.query.filter_by(id=job_id, user_id=current_user.id).first_or_404()
+    return render_template('corrections/detail.html', job=job)
 
 
-@bp.route('/<int:id>/download')
+@bp.route('/api/jobs')
 @login_required
-def download(id):
-    """Download corrected text as a file."""
-    job = CorrectionJob.query.filter_by(id=id, user_id=current_user.id).first_or_404()
+def api_list_jobs():
+    """API endpoint to get correction jobs."""
+    jobs = CorrectionJob.query.filter_by(user_id=current_user.id)\
+                             .order_by(CorrectionJob.created_at.desc())\
+                             .all()
     
-    if not job.is_successful or not job.corrected_content:
-        flash('ダウンロード可能な結果がありません。', 'error')
-        return redirect(url_for('corrections.detail', id=job.id))
+    jobs_data = []
+    for job in jobs:
+        jobs_data.append({
+            'id': job.id,
+            'transcript_id': job.transcript_id,
+            'transcript_title': job.transcript.title if job.transcript else 'N/A',
+            'status': job.status,
+            'processing_mode': job.processing_mode,
+            'model_used': job.model_used,
+            'cost': float(job.cost) if job.cost else 0.0,
+            'created_at': job.created_at.isoformat() if job.created_at else None,
+            'completed_at': job.completed_at.isoformat() if job.completed_at else None
+        })
     
-    response = make_response(job.corrected_content)
-    response.headers['Content-Type'] = 'text/plain; charset=utf-8'
-    filename = f"corrected_{job.transcript.title}_{job.id}.txt"
-    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
+    return jsonify({'jobs': jobs_data})
 
 
-@bp.route('/<int:id>/retry', methods=['POST'])
+@bp.route('/<int:job_id>/api/details')
 @login_required
-def retry(id):
-    """Retry a failed correction job."""
-    job = CorrectionJob.query.filter_by(id=id, user_id=current_user.id).first_or_404()
+def api_job_details(job_id):
+    """API endpoint to get detailed job information."""
+    job = CorrectionJob.query.filter_by(id=job_id, user_id=current_user.id).first_or_404()
     
-    if job.status not in ['failed', 'cancelled']:
-        flash('このジョブは再試行できません。', 'error')
-        return redirect(url_for('corrections.detail', id=job.id))
+    job_data = {
+        'id': job.id,
+        'transcript_id': job.transcript_id,
+        'transcript_title': job.transcript.title if job.transcript else 'N/A',
+        'status': job.status,
+        'processing_mode': job.processing_mode,
+        'model_used': job.model_used,
+        'custom_prompt': job.custom_prompt,
+        'original_content': job.original_content,
+        'corrected_content': job.corrected_content,
+        'cost': float(job.cost) if job.cost else 0.0,
+        'prompt_tokens': job.prompt_tokens,
+        'completion_tokens': job.completion_tokens,
+        'created_at': job.created_at.isoformat() if job.created_at else None,
+        'completed_at': job.completed_at.isoformat() if job.completed_at else None,
+        'error_message': job.error_message
+    }
     
-    # Create a new job with the same parameters
-    new_job = CorrectionJob(
-        user_id=current_user.id,
-        transcript_id=job.transcript_id,
-        wordlist_id=job.wordlist_id,
-        processing_mode=job.processing_mode,
-        custom_prompt=job.custom_prompt,
-        model_used=job.model_used
-    )
+    return jsonify(job_data)
+
+
+@bp.route('/<int:job_id>/delete', methods=['POST'])
+@login_required
+def delete_job(job_id):
+    """Delete a correction job."""
+    job = CorrectionJob.query.filter_by(id=job_id, user_id=current_user.id).first_or_404()
     
-    db.session.add(new_job)
-    db.session.commit()
+    try:
+        db.session.delete(job)
+        db.session.commit()
+        flash('修正ジョブが削除されました。', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('修正ジョブの削除に失敗しました。', 'error')
     
-    flash('ジョブが再作成されました。処理実行ページから実行してください。', 'info')
-    return redirect(url_for('corrections.detail', id=new_job.id))
+    return redirect(url_for('corrections.list'))
