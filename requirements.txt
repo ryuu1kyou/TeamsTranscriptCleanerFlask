@@ -5,10 +5,16 @@ Flask-Migrate==4.0.5
 Flask-Login==0.6.3
 Flask-WTF==1.2.1
 Flask-Mail==0.9.1
+Flask-Babel==4.0.0  # Added (imported in app/__init__.py)
 
 # Database
 PyMySQL==1.1.0
-mysqlclient==2.2.1
+# NOTE:
+# We use the PyMySQL driver via the URI scheme `mysql+pymysql://` in `config.py`.
+# The `mysqlclient` (C-based MySQLdb) package requires system headers (libmysqlclient-dev)
+# and failed to build in some environments. It's optional for performance; comment it out by default.
+# To use it instead of PyMySQL, install system deps first, then uncomment and change the URI to `mysql+mysqldb://`.
+#mysqlclient==2.2.1  # Optional (requires: build-essential default-libmysqlclient-dev pkg-config)
 
 # Forms and validation
 WTForms==3.1.1

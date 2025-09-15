@@ -1,43 +1,44 @@
 {% extends "base.html" %}
 
-{% block title %}Teams Transcript Cleaner{% endblock %}
+{% block title %}{{ _('Teams Transcript Cleaner') }}{% endblock %}
 
 {% block content %}
+{% set is_en = (session.get('language') or get_locale()) == 'en' %}
 <div class="row vh-100">
-  <!-- Left Sidebar: Settings Panel (Resizable) -->
-  <div class="border-end overflow-auto position-relative" id="leftPanel" style="min-width: 250px; width: 300px;">
-    <div class="p-3">
-      <h6 class="text-danger mb-3">{{ _('設定') }}</h6>
+    <!-- Left Sidebar: Settings Panel (Resizable) -->
+    <div class="border-end overflow-auto position-relative d-flex flex-column" id="leftPanel" style="min-width: 250px; width: 300px;">
+        <div class="p-3 flex-grow-1">
+    <h6 class="text-danger mb-3">{{ _('設定') }}</h6>
       
       <div class="alert alert-success py-2" role="alert">
         <small>{{ _('OpenAI APIキーが設定されています') }}</small>
       </div>
       
       <div class="mb-4">
-        <h6>{{ _('コスト情報') }}</h6>
+    <h6>{{ _('コスト情報') }}</h6>
         <div class="bg-light p-2 rounded mb-2">
           <small class="text-primary">{{ _('累計使用コスト') }}: ${{ "%.5f" | format(current_user.total_api_cost) }} USD</small>
         </div>
         <div class="bg-light p-2 rounded mb-2">
           <small class="text-primary" id="sessionCostDisplay">{{ _('現在のセッションコスト') }}: $0.00000 USD</small>
         </div>
-        <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetSessionCost()">{{ _('コスト履歴をリセット') }}</button>
+    <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetSessionCost()">{{ _('コスト履歴をリセット') }}</button>
       </div>
       
       <div class="mb-4">
-        <h6>{{ _('OpenAIモデル選択') }}</h6>
+    <h6>{{ _('OpenAIモデル選択') }}</h6>
         <select class="form-select form-select-sm" id="modelSelect">
           <option value="gpt-4o">GPT-4o</option>
           <option value="gpt-4o-mini">GPT-4o Mini</option>
           <option value="gpt-4-turbo">GPT-4 Turbo</option>
         </select>
         <small class="text-muted d-block mt-1" id="pricingInfo">
-          料金: $料金情報 USD / 1000トークン USD / 1000トークン
+          {{ _('料金') }}: $0.000 / 1000 {{ _('トークン') }}
         </small>
       </div>
       
       <div class="mb-4">
-        <h6>{{ _('処理モード選択') }}</h6>
+    <h6>{{ _('処理モード選択') }}</h6>
         <div class="form-check">
           <input class="form-check-input" type="radio" name="processingMode" id="proofreading" value="proofreading" checked>
           <label class="form-check-label" for="proofreading">
@@ -50,156 +51,110 @@
             <small>{{ _('文法修正') }}</small>
           </label>
         </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="processingMode" id="summary" value="summary">
-          <label class="form-check-label" for="summary">
-            <small>{{ _('要約') }}</small>
-          </label>
-        </div>
-      </div>
-      
-      <div class="mb-4">
-        <h6>{{ _('追加の指示（モードに応じて入力）') }}</h6>
-        <textarea class="form-control" rows="3" id="customPrompt" placeholder="例：誤字脱字モード「特」に入れ込み要素に確認し、要約モード「130文字以内で箇条書きで」"></textarea>
-      </div>
-      
-      <div class="mb-4">
-        <h6>{{ _('訂正前辞書 (TXT) アップロード') }}</h6>
-        <div class="border border-dashed rounded p-2 text-center mb-2" style="min-height: 80px;">
-          <small class="d-block">{{ _('Drag and drop file here') }}</small>
-          <small class="text-muted">{{ _('Limit 200MB per file • TXT') }}</small>
-          <input type="file" id="txtFile" accept=".txt" style="display: none;">
-          <button class="btn btn-sm btn-outline-primary mt-1" onclick="document.getElementById('txtFile').click()">{{ _('Browse files') }}</button>
-        </div>
-      </div>
-      
-      <div class="mb-4">
-        <h6>{{ _('誤字脱字一覧 (CSV) アップロード') }}</h6>
-        <div class="border border-dashed rounded p-2 text-center" style="min-height: 80px;">
-          <small class="d-block">{{ _('Drag and drop file here') }}</small>
-          <small class="text-muted">{{ _('Limit 200MB per file • CSV') }}</small>
-          <input type="file" id="csvFile" accept=".csv" style="display: none;">
-          <button class="btn btn-sm btn-outline-primary mt-1" onclick="document.getElementById('csvFile').click()">Browse files</button>
-        </div>
-      </div>
-      
-      <!-- WordList Management Button -->
-      <div class="mt-4 border-top pt-3">
-        <button class="btn btn-outline-success w-100" onclick="toggleWordListManagement()">
-          <i class="fas fa-list me-1"></i>{{ _('辞書一覧') }}
-        </button>
-      </div>
-      
-      <!-- User Management Button (only for admin users) -->
-      {% if current_user.can_manage_users() %}
-      <div class="mt-2">
-        <button class="btn btn-outline-info w-100" onclick="toggleUserManagement()">
-          <i class="fas fa-cog me-1"></i>{{ _('管理') }}
-        </button>
-      </div>
-      {% endif %}
-    </div>
-    
-    <!-- Resize Handle -->
-    <div class="position-absolute top-0 end-0 h-100 bg-primary" 
-         id="resizeHandle" 
-         style="width: 4px; cursor: col-resize; opacity: 0.3;"
-         onmouseenter="this.style.opacity='1'"
-         onmouseleave="this.style.opacity='0.3'">
-    </div>
-  </div>
-  
-  <!-- Right Side: Main Content Area -->
-  <div class="flex-fill d-flex flex-column overflow-hidden" id="rightPanel">
-    <!-- Header with Title and User Info -->
-    <div class="d-flex justify-content-between align-items-center p-3 border-bottom flex-shrink-0">
-      <h4 class="mb-0 text-primary">Teams Transcript Cleaner</h4>
-      <div class="d-flex align-items-center">
-        <small class="me-3">{{ _('ユーザー') }}: {{ current_user.full_name or current_user.username }}</small>
-        <button class="btn btn-outline-primary btn-sm me-2" onclick="showMainScreen()">
-          <i class="fas fa-home me-1"></i>{{ _('メイン画面') }}
-        </button>
-        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary btn-sm">{{ _('ログアウト') }}</a>
-      </div>
-    </div>
-    
-    <!-- Content Areas -->
-    <div class="flex-fill p-3 overflow-auto" id="mainContent">
-      <div class="row h-100">
-        <div class="col-6">
-          <div class="h-100 d-flex flex-column">
-            <h5 class="mb-2">{{ _('訂正前のファイル内容（編集不可）') }}</h5>
-            <div class="flex-fill bg-light border rounded p-3 overflow-auto">
-              <textarea class="form-control h-100 border-0 bg-transparent resize-none" id="originalContent" readonly placeholder="{{ _('テキストファイルをアップロードしてください') }}" style="resize: none;"></textarea>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="processingMode" id="summary" value="summary">
+                    <label class="form-check-label" for="summary">
+                        <small>{{ _('要約') }}</small>
+                    </label>
+                </div>
             </div>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="h-100 d-flex flex-column">
-            <h5 class="mb-2">{{ _('訂正後のファイル内容（手修正可）') }}</h5>
-            <div class="flex-fill bg-light border rounded p-3 overflow-auto">
-              <textarea class="form-control h-100 border-0 bg-transparent resize-none" id="correctedContent" placeholder="{{ _('訂正実行後に結果が表示されます') }}" style="resize: none;"></textarea>
+            <div class="mb-4">
+                <h6>{{ _('追加の指示（モードに応じて入力）') }}</h6>
+                <textarea class="form-control" rows="3" id="customPrompt" placeholder="{{ _('例：誤字脱字モード『特』に入れ込み要素に確認し、要約モード『130文字以内で箇条書きで』') }}"></textarea>
             </div>
-          </div>
+            <div class="mb-4">
+                <h6>{{ _('議事録 (TXT) アップロード') }}</h6>
+                <div class="border border-dashed rounded p-2 text-center mb-2" style="min-height: 80px;">
+                    <small class="d-block">{{ _('Drag and drop file here') }}</small>
+                    <small class="text-muted">{{ _('Limit 200MB per file • TXT') }}</small>
+                    <input type="file" id="txtFile" accept=".txt" style="display: none;">
+                    <button class="btn btn-sm btn-outline-primary mt-1" onclick="document.getElementById('txtFile').click()">{{ _('Browse files') }}</button>
+                </div>
+            </div>
+            <div class="mb-4">
+                <h6>{{ _('誤字脱字一覧 (CSV) アップロード') }}</h6>
+                <div class="border border-dashed rounded p-2 text-center" style="min-height: 80px;">
+                    <small class="d-block">{{ _('Drag and drop file here') }}</small>
+                    <small class="text-muted">{{ _('Limit 200MB per file • CSV') }}</small>
+                    <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                    <button class="btn btn-sm btn-outline-primary mt-1" onclick="document.getElementById('csvFile').click()">{{ _('Browse files') }}</button>
+                </div>
+            </div>
         </div>
-      </div>
+        <!-- Bottom action buttons (fixed at bottom) -->
+        <div class="p-3 border-top mt-auto">
+            <button class="btn btn-outline-success w-100 mb-2" onclick="toggleTranscriptHistory()">
+                <i class="fas fa-history me-1"></i>{{ _('議事録修正履歴') }}
+            </button>
+            {% if current_user.can_manage_users() %}
+            <button class="btn btn-outline-info w-100" onclick="toggleUserManagement()">
+                <i class="fas fa-cog me-1"></i>{{ _('管理') }}
+            </button>
+            {% endif %}
+        </div>
+        <!-- Resize Handle -->
+        <div class="position-absolute top-0 end-0 h-100 bg-primary" 
+                 id="resizeHandle" 
+                 style="width: 4px; cursor: col-resize; opacity: 0.3;"
+                 onmouseenter="this.style.opacity='1'"
+                 onmouseleave="this.style.opacity='0.3'">
+        </div>
     </div>
-    
-    <!-- WordList Management Content (Hidden by default) -->
-    <div class="flex-fill p-3 overflow-auto" id="wordListManagementContent" style="display: none;">
+
+    <!-- Right Panel -->
+    <div class="flex-fill d-flex flex-column overflow-hidden" id="rightPanel">
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom flex-shrink-0">
+            <h4 class="mb-0 text-primary">Teams Transcript Cleaner</h4>
+            <div class="d-flex align-items-center">
+                <small class="me-3">{{ _('ユーザー') }}: {{ current_user.full_name or current_user.username }}</small>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary btn-sm me-2">{{ _('ログアウト') }}</a>
+                <button id="backToMainBtn" class="btn btn-outline-primary btn-sm" style="display:none;" onclick="showMainScreen()">
+                    <i class="fas fa-home me-1"></i>{{ _('メイン画面') }}
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-fill p-3 overflow-auto" id="mainContent">
+            <div class="row h-100">
+                <div class="col-6">
+                    <div class="h-100 d-flex flex-column">
+                        <h5 class="mb-2">{{ _('訂正前のファイル内容（編集不可）') }}</h5>
+                        <div class="flex-fill bg-light border rounded p-3 overflow-auto">
+                            <textarea class="form-control h-100 border-0 bg-transparent resize-none" id="originalContent" readonly placeholder="{{ _('テキストファイルをアップロードしてください') }}" style="resize: none;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="h-100 d-flex flex-column">
+                        <h5 class="mb-2">{{ _('訂正後のファイル内容（手修正可）') }}</h5>
+                        <div class="flex-fill bg-light border rounded p-3 overflow-auto">
+                            <textarea class="form-control h-100 border-0 bg-transparent resize-none" id="correctedContent" placeholder="{{ _('訂正実行後に結果が表示されます') }}" style="resize: none;"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-fill p-3 overflow-auto" id="transcriptHistoryContent" style="display:none;">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">{{ _('辞書管理') }}</h4>
+    <h4 class="mb-0">{{ _('議事録修正履歴') }}</h4>
         <div>
-          <button class="btn btn-primary btn-sm me-2" onclick="createNewWordList()">
-            <i class="fas fa-plus me-1"></i>{{ _('新規作成') }}
-          </button>
           <button class="btn btn-outline-secondary btn-sm" onclick="showMainScreen()">
             <i class="fas fa-arrow-left me-1"></i>{{ _('戻る') }}
           </button>
         </div>
       </div>
-      
-      <!-- WordList List -->
-      <div class="row">
-        <div class="col-6">
-          <div class="card h-100">
-            <div class="card-header">
-              <h5 class="mb-0">{{ _('辞書一覧') }}</h5>
-            </div>
-            <div class="card-body overflow-auto">
-              <div id="wordListList">
-                <!-- WordList items will be loaded here -->
-              </div>
-            </div>
-          </div>
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0">{{ _('議事録一覧') }}</h5>
         </div>
-        
-        <!-- WordList Detail/Edit Panel -->
-        <div class="col-6">
-          <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <h5 class="mb-0" id="wordListDetailTitle">辞書詳細</h5>
-              <div id="wordListDetailActions" style="display: none;">
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editWordList()">
-                  <i class="fas fa-edit me-1"></i>編集
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteWordList()">
-                  <i class="fas fa-trash me-1"></i>削除
-                </button>
-              </div>
-            </div>
-            <div class="card-body overflow-auto">
-              <div id="wordListDetailContent">
-                <p class="text-muted text-center">辞書を選択してください</p>
-              </div>
-            </div>
-          </div>
+        <div class="card-body overflow-auto">
+          <div id="transcriptHistoryList" class="small text-muted">{{ _('読み込み中...') }}</div>
         </div>
       </div>
     </div>
 
-    <!-- User Management Content (Hidden by default) -->
-    <div class="flex-fill p-3 overflow-auto" id="userManagementContent" style="display: none;">
+    <div class="flex-fill p-3 overflow-auto" id="userManagementContent" style="display:none;">
       <!-- Tab Navigation -->
       <ul class="nav nav-tabs mb-3" id="managementTabs">
         <li class="nav-item">
@@ -226,18 +181,18 @@
             </div>
             <div class="card-body overflow-auto">
               <div class="table-responsive">
-                <table class="table table-hover">
-                  <thead class="table-light">
-                    <tr>
-                      <th>ID</th>
-                      <th>{{ _('ユーザー名') }}</th>
-                      <th>{{ _('メール') }}</th>
-                      <th>ロール</th>
-                      <th>{{ _('最終ログイン') }}</th>
-                      <th>{{ _('ステータス') }}</th>
-                      <th>アクション</th>
-                    </tr>
-                  </thead>
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>{{ _('ユーザー名') }}</th>
+                                            <th>{{ _('メール') }}</th>
+                                            <th>{{ _('ロール') }}</th>
+                                            <th>{{ _('最終ログイン') }}</th>
+                                            <th>{{ _('ステータス') }}</th>
+                                            <th>{{ _('アクション') }}</th>
+                                        </tr>
+                                    </thead>
                   <tbody id="userTableBody">
                     <!-- User data will be loaded here -->
                   </tbody>
@@ -252,23 +207,23 @@
           <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h5 class="mb-0">ロール管理</h5>
-              <button class="btn btn-primary btn-sm" onclick="addRole()">
-                <i class="fas fa-plus me-1"></i>新規ロール追加
-              </button>
+                            <button class="btn btn-primary btn-sm" onclick="addRole()">
+                                <i class="fas fa-plus me-1"></i>{{ _('新規ロール追加') }}
+                            </button>
             </div>
             <div class="card-body overflow-auto">
               <div class="table-responsive">
-                <table class="table table-hover">
-                  <thead class="table-light">
-                    <tr>
-                      <th>ロール名</th>
-                      <th>説明</th>
-                      <th>権限</th>
-                      <th>ユーザー数</th>
-                      <th>作成日</th>
-                      <th>アクション</th>
-                    </tr>
-                  </thead>
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>{{ _('ロール名') }}</th>
+                                            <th>{{ _('説明') }}</th>
+                                            <th>{{ _('権限') }}</th>
+                                            <th>{{ _('ユーザー数') }}</th>
+                                            <th>{{ _('作成日') }}</th>
+                                            <th class="text-nowrap">{{ _('アクション') }}</th>
+                                        </tr>
+                                    </thead>
                   <tbody id="roleTableBody">
                     <!-- Role data will be loaded here -->
                   </tbody>
@@ -279,24 +234,131 @@
         </div>
       </div>
     </div>
+        <!-- Modals -->
+        <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="userModalTitle"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="userForm">
+                            <input type="hidden" id="userIdField">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small">{{ _('ユーザー名') }}</label>
+                                    <input type="text" class="form-control" id="usernameField" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">{{ _('メール') }}</label>
+                                    <input type="email" class="form-control" id="emailField" required>
+                                </div>
+                                <div class="col-md-6" id="passwordGroup">
+                                    <label class="form-label small">{{ _('パスワード') }}</label>
+                                    <input type="password" class="form-control" id="passwordField" autocomplete="new-password">
+                                    <small class="text-muted" id="passwordHelp"></small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">{{ _('ロール') }}</label>
+                                    <select class="form-select" id="roleSelect"></select>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="isActiveField" checked>
+                                        <label class="form-check-label small" for="isActiveField">{{ _('アクティブ') }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="isVerifiedField">
+                                        <label class="form-check-label small" for="isVerifiedField">{{ _('検証済み') }}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('閉じる') }}</button>
+                        <button type="button" class="btn btn-primary" id="saveUserBtn"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="roleModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="roleModalTitle"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="roleForm">
+                            <input type="hidden" id="roleIdField">
+                            <div class="mb-3">
+                                <label class="form-label small">{{ _('ロール名') }}</label>
+                                <input type="text" class="form-control" id="roleNameField" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small">{{ _('説明') }}</label>
+                                <textarea class="form-control" id="roleDescriptionField" rows="2"></textarea>
+                            </div>
+                            <div class="border rounded p-2 mb-2">
+                                <label class="form-label small mb-2">{{ _('権限') }}</label>
+                                <div class="row g-2 small">
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="permManageUsers">
+                                            <label class="form-check-label" for="permManageUsers">{{ _('ユーザー管理') }}</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="permManageRoles">
+                                            <label class="form-check-label" for="permManageRoles">{{ _('ロール管理') }}</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="permViewAll">
+                                            <label class="form-check-label" for="permViewAll">{{ _('全体閲覧') }}</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="permUseApi" checked>
+                                            <label class="form-check-label" for="permUseApi">API</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('閉じる') }}</button>
+                        <button type="button" class="btn btn-primary" id="saveRoleBtn"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
     
-    <!-- Bottom Buttons (Only for Main Content) -->
-    <div class="p-3 border-top flex-shrink-0" id="mainButtons">
+        <div class="p-3 border-top flex-shrink-0" id="mainButtons">
       <div class="row">
         <div class="col-6">
-          <button class="btn btn-secondary w-100" id="copyToCorrectedBtn" disabled onclick="copyToCorrected()">
-            {{ _('訂正後テキストを訂正前にコピー') }}
-          </button>
+                    <button class="btn btn-secondary w-100" id="copyToCorrectedBtn" disabled onclick="copyToCorrected()">
+                        {{ _('訂正後テキストを訂正前にコピー') }}
+                    </button>
         </div>
         <div class="col-6">
-          <button class="btn btn-outline-secondary w-100" id="downloadBtn" disabled onclick="downloadResult()">
-            {{ _('最終確定をダウンロード') }}
-          </button>
+                    <button class="btn btn-outline-secondary w-100" id="downloadBtn" disabled onclick="downloadResult()">
+                        {{ _('最終確定をダウンロード') }}
+                    </button>
         </div>
       </div>
     </div>
-  </div>
-</div>
+    </div> <!-- /rightPanel -->
+</div> <!-- /row -->
 
 <!-- Hidden Process Button (triggered by file upload) -->
 <button id="processBtn" style="display: none;" onclick="processText()">Process</button>
@@ -325,21 +387,64 @@ let sessionCost = 0.0;
 let originalText = '';
 let correctedText = '';
 let selectedWordlistId = null;
+let activeTranscriptId = null; // Set after first TXT upload
+
+// i18n message dictionary injected from server-side using gettext
+const MSG = {
+    transcript_created: "{{ _('Transcript created') }}",
+    transcript_create_failed: "{{ _('Failed to create transcript') }}",
+    upload_text_prompt: "{{ _('Please upload a text file') }}",
+    processing_running: "{{ _('Processing...') }}",
+    processing_button_label: "{{ _('Run Processing') }}",
+    processing_complete_prefix: "{{ _('Completed - Cost:') }}",
+    processing_error_prefix: "{{ _('Processing error:') }}",
+    text_copied: "{{ _('Copied text') }}",
+    download_no_content: "{{ _('No content to download') }}",
+    need_transcript_first: "{{ _('Upload transcript (TXT) first') }}",
+    history_save_failed_prefix: "{{ _('Failed to save history:') }}",
+    history_saved_and_downloaded: "{{ _('Saved final revision and downloaded') }}",
+    load_error: "{{ _('Load error') }}",
+    load_failed: "{{ _('Load failed') }}",
+    user_created: "{{ _('User created') }}",
+    user_updated: "{{ _('User updated') }}",
+    role_created: "{{ _('Role created') }}",
+    role_updated: "{{ _('Role updated') }}",
+    required_missing: "{{ _('Required fields missing') }}",
+    session_cost_reset: "{{ _('Session cost reset') }}",
+    role_name_required: "{{ _('Role name required') }}",
+    error_generic: "{{ _('Error') }}",
+    unknown: "{{ _('Unknown') }}"
+};
 
 // File upload handlers
 document.getElementById('txtFile').addEventListener('change', function(e) {
     const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            originalText = e.target.result;
-            document.getElementById('originalContent').value = originalText;
-            updateOriginalStats();
-            // Auto-trigger processing after file upload
-            processText();
-        };
-        reader.readAsText(file);
-    }
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        originalText = ev.target.result;
+        document.getElementById('originalContent').value = originalText;
+        updateOriginalStats();
+        // Create transcript document on server for history association
+        const baseName = file.name.replace(/\.[^.]+$/, '');
+        fetch('/transcripts/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: baseName, filename: file.name, content: originalText })
+        })
+        .then(r=>r.json())
+        .then(data=>{
+            if(data.success){
+                activeTranscriptId = data.transcript_id;
+        showSuccess(MSG.transcript_created);
+                processText();
+            } else {
+        showError(MSG.transcript_create_failed + ': ' + (data.error||''));
+            }
+        })
+    .catch(err=> showError(MSG.transcript_create_failed + ': '+ err.message));
+    };
+    reader.readAsText(file);
 });
 
 document.getElementById('csvFile').addEventListener('change', function(e) {
@@ -373,7 +478,7 @@ document.getElementById('csvFile').addEventListener('change', function(e) {
 // Text processing
 function processText() {
     if (!originalText) {
-        showError('テキストファイルをアップロードしてください');
+        showError(MSG.upload_text_prompt);
         return;
     }
     
@@ -383,7 +488,7 @@ function processText() {
     
     // Show processing state
     const processBtn = document.getElementById('processBtn');
-    processBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>処理中...';
+    processBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>' + MSG.processing_running;
     processBtn.disabled = true;
     
     // Make API call
@@ -415,21 +520,21 @@ function processText() {
             document.getElementById('downloadBtn').disabled = false;
             document.getElementById('copyToCorrectedBtn').disabled = false;
             
-            showSuccess(`処理完了 - コスト: $${data.cost.toFixed(5)}`);
+            showSuccess(`${MSG.processing_complete_prefix} $${data.cost.toFixed(5)}`);
             
             // Show diff if enabled
             if (document.getElementById('showDiff').checked) {
                 showDiff();
             }
         } else {
-            showError('処理エラー: ' + (data.error || '不明なエラー'));
+            showError(`${MSG.processing_error_prefix} ${(data.error || 'Unknown')}`);
         }
     })
     .catch(error => {
-        showError('処理エラー: ' + error.message);
+        showError(`${MSG.processing_error_prefix} ${error.message}`);
     })
     .finally(() => {
-        processBtn.innerHTML = '<i class="fas fa-magic me-1"></i>テキストを処理実行';
+        processBtn.innerHTML = '<i class="fas fa-magic me-1"></i>' + MSG.processing_button_label;
         processBtn.disabled = false;
     });
 }
@@ -440,13 +545,23 @@ function copyToCorrected() {
         originalText = correctedContent;
         document.getElementById('originalContent').value = originalText;
         updateOriginalStats();
-        showSuccess('テキストがコピーされました');
+    showSuccess(MSG.text_copied);
     }
 }
 
 function downloadResult() {
     const content = document.getElementById('correctedContent').value;
-    if (content) {
+    if (!content) { showError(MSG.download_no_content); return; }
+    if (!activeTranscriptId) { showError(MSG.need_transcript_first); return; }
+    // First finalize (store revision), then download
+    fetch('/transcripts/api/finalize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript_id: activeTranscriptId, content: content })
+    })
+    .then(r=>r.json())
+    .then(data=>{
+    if(!data.success){ showError(MSG.history_save_failed_prefix + ' ' + (data.error||'')); return; }
         const blob = new Blob([content], { type: 'text/plain' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -456,8 +571,9 @@ function downloadResult() {
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
-        showSuccess('ファイルがダウンロードされました');
-    }
+        showSuccess(MSG.history_saved_and_downloaded);
+    })
+    .catch(err=> showError(MSG.history_save_failed_prefix + ' ' + err.message));
 }
 
 function showDiff() {
@@ -507,24 +623,24 @@ function updateOriginalStats() {
     const text = document.getElementById('originalContent').value;
     const charCount = text.length;
     const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
-    document.getElementById('originalStats').textContent = `文字数: ${charCount.toLocaleString()}, 単語数: ${wordCount.toLocaleString()}`;
+  document.getElementById('originalStats').textContent = `{{ _('文字数') }}: ${charCount.toLocaleString()}, {{ _('単語数') }}: ${wordCount.toLocaleString()}`;
 }
 
 function updateCorrectedStats() {
     const text = document.getElementById('correctedContent').value;
     const charCount = text.length;
     const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
-    document.getElementById('correctedStats').textContent = `文字数: ${charCount.toLocaleString()}, 単語数: ${wordCount.toLocaleString()}`;
+  document.getElementById('correctedStats').textContent = `{{ _('文字数') }}: ${charCount.toLocaleString()}, {{ _('単語数') }}: ${wordCount.toLocaleString()}`;
 }
 
 function updateSessionCost() {
-    document.getElementById('sessionCostDisplay').textContent = `現在のセッションコスト: $${sessionCost.toFixed(5)} USD`;
+  document.getElementById('sessionCostDisplay').textContent = `{{ _('現在のセッションコスト') }}: $${sessionCost.toFixed(5)} USD`;
 }
 
 function resetSessionCost() {
     sessionCost = 0.0;
     updateSessionCost();
-    showSuccess('セッションコストがリセットされました');
+    showSuccess(MSG.session_cost_reset);
 }
 
 function showSuccess(message) {
@@ -550,351 +666,72 @@ function showError(message) {
     setTimeout(() => toast.remove(), 8000);
 }
 
-// Model selection handler
-document.getElementById('modelSelect').addEventListener('change', function() {
-    const model = this.value;
-    const pricingInfo = {
-        'gpt-4o': '$0.005 / 1000トークン (入力) • $0.015 / 1000トークン (出力)',
-        'gpt-4o-mini': '$0.000150 / 1000トークン (入力) • $0.000600 / 1000トークン (出力)',
-        'gpt-4-turbo': '$0.010 / 1000トークン (入力) • $0.030 / 1000トークン (出力)'
-    };
-    document.getElementById('pricingInfo').textContent = '料金: ' + pricingInfo[model];
-});
+// Defer DOM-dependent listener bindings until DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    const modelSelect = document.getElementById('modelSelect');
+    if(modelSelect){
+        modelSelect.addEventListener('change', function(){
+            const model = this.value;
+            const pricingInfo = {
+                'gpt-4o': `${"{{ _('入力') }}"} $0.005 / 1K ${"{{ _('トークン') }}"} • ${"{{ _('出力') }}"} $0.015 / 1K ${"{{ _('トークン') }}"}`,
+                'gpt-4o-mini': `${"{{ _('入力') }}"} $0.000150 / 1K ${"{{ _('トークン') }}"} • ${"{{ _('出力') }}"} $0.000600 / 1K ${"{{ _('トークン') }}"}`,
+                'gpt-4-turbo': `${"{{ _('入力') }}"} $0.010 / 1K ${"{{ _('トークン') }}"} • ${"{{ _('出力') }}"} $0.030 / 1K ${"{{ _('トークン') }}"}`
+            };
+            const pricingEl = document.getElementById('pricingInfo');
+            if(pricingEl) pricingEl.textContent = "{{ _('料金') }}: " + pricingInfo[model];
+        });
+        modelSelect.dispatchEvent(new Event('change'));
+    }
 
-// Show diff toggle
-document.getElementById('showDiff').addEventListener('change', function() {
-    if (this.checked && originalText && correctedText) {
-        showDiff();
-    } else {
-        document.getElementById('diffDisplay').style.display = 'none';
+    const showDiffCheckbox = document.getElementById('showDiff');
+    if(showDiffCheckbox){
+        showDiffCheckbox.addEventListener('change', function(){
+            if(this.checked && originalText && correctedText){
+                showDiff();
+            } else {
+                const diffDisplay = document.getElementById('diffDisplay');
+                if(diffDisplay) diffDisplay.style.display = 'none';
+            }
+        });
     }
 });
 
-// Initialize pricing info
-document.getElementById('modelSelect').dispatchEvent(new Event('change'));
-
-// WordList Management Functions
-let currentSelectedWordListId = null;
-let isEditingWordList = false;
-
-function toggleWordListManagement() {
+// Transcript history toggle
+function toggleTranscriptHistory() {
     const mainContent = document.getElementById('mainContent');
-    const wordListManagementContent = document.getElementById('wordListManagementContent');
+    const historyContent = document.getElementById('transcriptHistoryContent');
     const userManagementContent = document.getElementById('userManagementContent');
     const mainButtons = document.getElementById('mainButtons');
-    
-    // Hide all other contents
     mainContent.style.display = 'none';
     userManagementContent.style.display = 'none';
     mainButtons.style.display = 'none';
-    
-    // Show WordList management
-    wordListManagementContent.style.display = 'block';
-    loadWordListData();
+    historyContent.style.display = 'block';
+    loadTranscriptHistory();
+    document.getElementById('backToMainBtn').style.display = 'inline-block';
 }
-
-function loadWordListData() {
-    fetch('/wordlists/api/wordlists')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayWordListData(data.wordlists);
-            } else {
-                showError('辞書データの読み込みに失敗しました: ' + data.error);
-            }
-        })
-        .catch(error => {
-            showError('辞書データの読み込みに失敗しました: ' + error.message);
-        });
-}
-
-function displayWordListData(wordlists) {
-    const listContainer = document.getElementById('wordListList');
-    
-    if (wordlists.length === 0) {
-        listContainer.innerHTML = '<p class="text-muted text-center">辞書がありません</p>';
-        return;
-    }
-    
-    listContainer.innerHTML = wordlists.map(wordlist => `
-        <div class="card mb-2 wordlist-item" data-id="${wordlist.id}" onclick="selectWordList(${wordlist.id})">
-            <div class="card-body p-2">
-                <h6 class="card-title mb-1">${wordlist.name} 
-                    <span class="badge bg-secondary ms-1">v${wordlist.version}</span>
-                    ${!wordlist.is_active ? '<span class="badge bg-warning">履歴</span>' : ''}
-                </h6>
-                <p class="card-text small text-muted mb-1">${wordlist.description || '説明なし'}</p>
-                <div class="d-flex justify-content-between">
-                    <small class="text-info">${wordlist.word_count}語</small>
-                    <small class="text-muted">最終使用: ${wordlist.last_used_at}</small>
-                </div>
-                <small class="text-muted">使用回数: ${wordlist.usage_count}回</small>
-            </div>
-        </div>
-    `).join('');
-}
-
-function selectWordList(wordlistId) {
-    currentSelectedWordListId = wordlistId;
-    
-    // Update visual selection
-    document.querySelectorAll('.wordlist-item').forEach(item => {
-        item.classList.remove('border-primary');
-    });
-    document.querySelector(`[data-id="${wordlistId}"]`).classList.add('border-primary');
-    
-    // Load detailed information
-    fetch(`/wordlists/api/wordlists/${wordlistId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                displayWordListDetail(data.wordlist);
-            } else {
-                showError('辞書詳細の読み込みに失敗しました: ' + data.error);
-            }
-        })
-        .catch(error => {
-            showError('辞書詳細の読み込みに失敗しました: ' + error.message);
-        });
-}
-
-function displayWordListDetail(wordlist) {
-    const titleElement = document.getElementById('wordListDetailTitle');
-    const actionsElement = document.getElementById('wordListDetailActions');
-    const contentElement = document.getElementById('wordListDetailContent');
-    
-    titleElement.textContent = `${wordlist.name} (v${wordlist.version})`;
-    actionsElement.style.display = 'block';
-    
-    const historyHtml = wordlist.history.length > 0 ? `
-        <div class="mt-3">
-            <h6>版本履歴</h6>
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>版本</th>
-                            <th>作成日</th>
-                            <th>語数</th>
-                            <th>使用回数</th>
-                            <th>状態</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${wordlist.history.map(version => `
-                            <tr>
-                                <td>v${version.version}</td>
-                                <td>${version.created_at}</td>
-                                <td>${version.word_count}</td>
-                                <td>${version.usage_count}</td>
-                                <td>${version.is_active ? '<span class="badge bg-success">現在</span>' : '<span class="badge bg-secondary">履歴</span>'}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    ` : '';
-    
-    contentElement.innerHTML = `
-        <div>
-            <div class="mb-3">
-                <label class="form-label">名前:</label>
-                <input type="text" class="form-control" id="editWordListName" value="${wordlist.name}" disabled>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">説明:</label>
-                <textarea class="form-control" id="editWordListDescription" rows="2" disabled>${wordlist.description}</textarea>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">情報:</label>
-                <div class="bg-light p-2 rounded">
-                    <small class="d-block">語数: ${wordlist.word_count}</small>
-                    <small class="d-block">使用回数: ${wordlist.usage_count}</small>
-                    <small class="d-block">最終使用: ${wordlist.last_used_at}</small>
-                    <small class="d-block">作成日: ${wordlist.created_at}</small>
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label">CSV内容 (${wordlist.word_pairs.length}語):</label>
-                <div class="bg-light p-2 rounded" style="max-height: 200px; overflow-y: auto;">
-                    <table class="table table-sm table-striped">
-                        <thead>
-                            <tr><th>誤字</th><th>正字</th></tr>
-                        </thead>
-                        <tbody>
-                            ${wordlist.word_pairs.map(pair => `
-                                <tr>
-                                    <td>${pair.incorrect}</td>
-                                    <td>${pair.correct}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-                <textarea class="form-control mt-2" id="editWordListCSV" rows="6" style="display: none;">${wordlist.csv_content}</textarea>
-            </div>
-            
-            ${historyHtml}
-        </div>
-    `;
-}
-
-function editWordList() {
-    if (!currentSelectedWordListId) return;
-    
-    isEditingWordList = !isEditingWordList;
-    
-    const nameInput = document.getElementById('editWordListName');
-    const descInput = document.getElementById('editWordListDescription');
-    const csvInput = document.getElementById('editWordListCSV');
-    const wordPairTable = document.querySelector('#wordListDetailContent .bg-light.p-2.rounded');
-    
-    if (isEditingWordList) {
-        nameInput.disabled = false;
-        descInput.disabled = false;
-        csvInput.style.display = 'block';
-        wordPairTable.style.display = 'none';
-        
-        document.querySelector('#wordListDetailActions button[onclick="editWordList()"]').innerHTML = 
-            '<i class="fas fa-save me-1"></i>保存';
-    } else {
-        // Save changes
-        const updatedData = {
-            name: nameInput.value,
-            description: descInput.value,
-            csv_content: csvInput.value
-        };
-        
-        fetch(`/wordlists/api/wordlists/${currentSelectedWordListId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showSuccess('辞書が更新されました');
-                loadWordListData();
-                selectWordList(data.wordlist.id); // Reload with new ID if version was created
-            } else {
-                showError('更新に失敗しました: ' + data.error);
-            }
-        })
-        .catch(error => {
-            showError('更新に失敗しました: ' + error.message);
-        });
-        
-        nameInput.disabled = true;
-        descInput.disabled = true;
-        csvInput.style.display = 'none';
-        wordPairTable.style.display = 'block';
-        
-        document.querySelector('#wordListDetailActions button[onclick="editWordList()"]').innerHTML = 
-            '<i class="fas fa-edit me-1"></i>編集';
-    }
-}
-
-function deleteWordList() {
-    if (!currentSelectedWordListId) return;
-    
-    const wordlistName = document.getElementById('editWordListName').value;
-    
-    if (!confirm(`辞書「${wordlistName}」とそのすべての履歴を削除しますか？この操作は取り消せません。`)) {
-        return;
-    }
-    
-    fetch(`/wordlists/api/wordlists/${currentSelectedWordListId}`, {
-        method: 'DELETE'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccess(data.message);
-            loadWordListData();
-            // Clear detail view
-            document.getElementById('wordListDetailTitle').textContent = '辞書詳細';
-            document.getElementById('wordListDetailActions').style.display = 'none';
-            document.getElementById('wordListDetailContent').innerHTML = 
-                '<p class="text-muted text-center">辞書を選択してください</p>';
-            currentSelectedWordListId = null;
-        } else {
-            showError('削除に失敗しました: ' + data.error);
-        }
-    })
-    .catch(error => {
-        showError('削除に失敗しました: ' + error.message);
-    });
-}
-
-function createNewWordList() {
-    const name = prompt('辞書名を入力してください:');
-    if (!name) return;
-    
-    const description = prompt('説明を入力してください (省略可):') || '';
-    const csvContent = prompt('CSV内容を入力してください (形式: 誤字,正字):');
-    if (!csvContent) return;
-    
-    fetch('/wordlists/api/wordlists', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            name: name,
-            description: description,
-            csv_content: csvContent
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccess(`辞書「${data.wordlist.name}」が作成されました`);
-            loadWordListData();
-        } else {
-            showError('作成に失敗しました: ' + data.error);
-        }
-    })
-    .catch(error => {
-        showError('作成に失敗しました: ' + error.message);
-    });
-}
+// (Removed residual word list functions)
 
 // User Management Functions
 function toggleUserManagement() {
     const mainContent = document.getElementById('mainContent');
-    const wordListManagementContent = document.getElementById('wordListManagementContent');
     const userManagementContent = document.getElementById('userManagementContent');
     const mainButtons = document.getElementById('mainButtons');
-    
-    // Hide all other contents
     mainContent.style.display = 'none';
-    wordListManagementContent.style.display = 'none';
     mainButtons.style.display = 'none';
-    
-    // Show user management
     userManagementContent.style.display = 'block';
+    document.getElementById('backToMainBtn').style.display = 'inline-block';
     loadUserData();
 }
 
 function showMainScreen() {
     const mainContent = document.getElementById('mainContent');
-    const wordListManagementContent = document.getElementById('wordListManagementContent');
     const userManagementContent = document.getElementById('userManagementContent');
     const mainButtons = document.getElementById('mainButtons');
-    
-    // Show main content
     mainContent.style.display = 'block';
     mainButtons.style.display = 'block';
-    
-    // Hide all management screens
-    wordListManagementContent.style.display = 'none';
+    document.getElementById('backToMainBtn').style.display = 'none';
     userManagementContent.style.display = 'none';
+    document.getElementById('transcriptHistoryContent').style.display = 'none';
 }
 
 function switchTab(tabType) {
@@ -925,26 +762,49 @@ function loadUserData() {
         .then(data => {
             if (data.success) {
                 const tbody = document.getElementById('userTableBody');
-                tbody.innerHTML = data.users.map(user => `
+                tbody.innerHTML = data.users.map(user => {
+                    const statusLabel = user.is_active ? '{{ _('アクティブ') }}' : '{{ _('無効') }}';
+                    return `
                     <tr>
                         <td>${user.id}</td>
                         <td>${user.username}</td>
                         <td>${user.email}</td>
                         <td><span class="badge ${user.role === 'Admin' ? 'bg-danger' : 'bg-primary'}">${user.role}</span></td>
-                        <td>${user.last_login || 'Never'}</td>
-                        <td><span class="badge ${user.is_active ? 'bg-success' : 'bg-secondary'}">${user.is_active ? 'アクティブ' : '無効'}</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editUser(${user.id})">編集</button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})">削除</button>
+                        <td>${user.last_login || '-'}</td>
+                        <td><span class="badge ${user.is_active ? 'bg-success' : 'bg-secondary'}">${statusLabel}</span></td>
+                        <td class="actions-cell text-nowrap">
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editUser(${user.id})">{{ _('編集') }}</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})">{{ _('削除') }}</button>
                         </td>
-                    </tr>
-                `).join('');
+                    </tr>`;
+                }).join('');
             } else {
                 showError('ユーザーデータの読み込みに失敗しました: ' + data.error);
             }
         })
         .catch(error => {
             showError('ユーザーデータの読み込みに失敗しました: ' + error.message);
+        });
+}
+
+function loadTranscriptHistory(){
+    fetch('/transcripts/api/history')
+        .then(r=>r.json())
+        .then(data=>{
+            const el = document.getElementById('transcriptHistoryList');
+            if(!el) return;
+            if(!data.success){ el.textContent = "{{ _('読み込みエラー') }}"; return; }
+            if(data.transcripts.length === 0){ el.textContent = "{{ _('まだ議事録がありません') }}"; return; }
+            el.innerHTML = data.transcripts.map(t => `
+                <div class="border rounded p-2 mb-2">
+                    <div><strong>${t.title}</strong></div>
+                    <div class="text-muted">{{ _('作成日') }}: ${t.created_at || '-'} / {{ _('確定回数') }}: ${t.revision_count}</div>
+                </div>
+            `).join('');
+        })
+        .catch(err => {
+            const el = document.getElementById('transcriptHistoryList');
+            if(el) el.textContent = "{{ _('読み込みエラー') }}";
         });
 }
 
@@ -955,24 +815,29 @@ function loadRoleData() {
         .then(data => {
             if (data.success) {
                 const tbody = document.getElementById('roleTableBody');
+                const roleNoDesc = "{{ _('説明なし') }}";
+                const noPermLabel = "{{ _('権限なし') }}";
                 tbody.innerHTML = data.roles.map(role => {
                     const permissions = [];
-                    if (role.permissions.can_manage_users) permissions.push('ユーザー管理');
-                    if (role.permissions.can_manage_roles) permissions.push('ロール管理');
-                    if (role.permissions.can_view_all_transcripts) permissions.push('全体閲覧');
-                    if (role.permissions.can_manage_wordlists) permissions.push('辞書管理');
-                    if (role.permissions.can_use_api) permissions.push('API使用');
+                    if (role.permissions.can_manage_users) permissions.push("{{ _('ユーザー管理') }}");
+                    if (role.permissions.can_manage_roles) permissions.push("{{ _('ロール管理') }}");
+                    if (role.permissions.can_view_all_transcripts) permissions.push("{{ _('全体閲覧') }}");
+                    if (role.permissions.can_manage_wordlists) permissions.push("{{ _('辞書管理') }}");
+                    if (role.permissions.can_use_api) permissions.push('API');
+                    const permissionsHtml = permissions.length
+                        ? permissions.map(p => `<span class="badge bg-info me-1 mb-1">${p}</span>`).join('')
+                        : `<span class="badge bg-secondary">${noPermLabel}</span>`;
                     
                     return `
                         <tr>
                             <td><strong>${role.name}</strong></td>
-                            <td>${role.description || '説明なし'}</td>
-                            <td><span class="badge bg-info">${permissions.join(', ') || '権限なし'}</span></td>
+                            <td>${role.description ? role.description : roleNoDesc}</td>
+                            <td class="permissions-cell">${permissionsHtml}</td>
                             <td>${role.user_count}</td>
                             <td>${role.created_at}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editRole(${role.id})">編集</button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteRole(${role.id})">削除</button>
+                            <td class="actions-cell text-nowrap">
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editRole(${role.id})">{{ _('編集') }}</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteRole(${role.id})">{{ _('削除') }}</button>
                             </td>
                         </tr>
                     `;
@@ -987,76 +852,103 @@ function loadRoleData() {
 }
 
 // User/Role management functions
-function addUser() {
-    const username = prompt('ユーザー名を入力してください:');
-    if (!username) return;
-    
-    const email = prompt('メールアドレスを入力してください:');
-    if (!email) return;
-    
-    const password = prompt('パスワードを入力してください:');
-    if (!password) return;
-    
-    fetch('/admin/api/users', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            username: username,
-            email: email,
-            password: password,
-            is_active: true
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccess(`ユーザー ${data.user.username} が作成されました`);
-            loadUserData();
-        } else {
-            showError('ユーザー作成に失敗しました: ' + data.error);
+// Modal logic wrapped after DOM ready to avoid early reference errors
+let userModalInstance = null;
+let roleModalInstance = null;
+document.addEventListener('DOMContentLoaded',()=>{
+    // Pre-cache modal elements lazily when first needed
+});
+
+function ensureUserModal(){
+        if(!userModalInstance){
+                const el=document.getElementById('userModal');
+                if(!window.bootstrap){ console.warn('Bootstrap JS not loaded'); return; }
+                userModalInstance = new bootstrap.Modal(el);
         }
-    })
-    .catch(error => {
-        showError('ユーザー作成に失敗しました: ' + error.message);
-    });
 }
 
-function editUser(userId) {
-    // Simple edit - in production, use a proper form/modal
-    const newUsername = prompt(`ユーザー ${userId} の新しいユーザー名を入力してください:`);
-    if (!newUsername) return;
-    
-    fetch(`/admin/api/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            username: newUsername
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccess(`ユーザーが更新されました`);
-            loadUserData();
-        } else {
-            showError('ユーザー更新に失敗しました: ' + data.error);
-        }
-    })
-    .catch(error => {
-        showError('ユーザー更新に失敗しました: ' + error.message);
-    });
+function populateRoleSelect(){
+    fetch('/admin/api/roles')
+        .then(r=>r.json())
+        .then(data=>{
+            if(!data.success) return;
+            const sel=document.getElementById('roleSelect');
+            sel.innerHTML = '<option value="">(default)</option>' + data.roles.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+        });
+}
+
+function addUser(){
+    ensureUserModal();
+    populateRoleSelect();
+        document.getElementById('userModalTitle').textContent="{{ _('新規ユーザー追加') }}";
+        document.getElementById('saveUserBtn').textContent="{{ _('作成') }}";
+        document.getElementById('passwordHelp').textContent="{{ _('必須') }}";
+    document.getElementById('userForm').reset();
+    document.getElementById('userIdField').value='';
+    document.getElementById('passwordGroup').style.display='block';
+    userModalInstance.show();
+    document.getElementById('saveUserBtn').onclick = submitCreateUser;
+}
+
+function editUser(userId){
+    ensureUserModal();
+    populateRoleSelect();
+    fetch(`/admin/api/users/${userId}`)
+        .then(r=>r.json())
+        .then(data=>{
+            if(!data.success){ showError(MSG.load_failed); return; }
+            const u=data.user;
+            document.getElementById('userModalTitle').textContent="{{ _('ユーザー編集') }}";
+            document.getElementById('saveUserBtn').textContent="{{ _('更新') }}";
+            document.getElementById('usernameField').value=u.username;
+            document.getElementById('emailField').value=u.email;
+            document.getElementById('roleSelect').value = u.role_id || '';
+            document.getElementById('isActiveField').checked = !!u.is_active;
+            document.getElementById('isVerifiedField').checked = !!u.is_verified;
+            document.getElementById('userIdField').value=u.id;
+            document.getElementById('passwordField').value='';
+            document.getElementById('passwordHelp').textContent="{{ _('空欄の場合は変更されません') }}";
+            document.getElementById('passwordGroup').style.display='block';
+            userModalInstance.show();
+            document.getElementById('saveUserBtn').onclick = submitUpdateUser;
+        });
+}
+
+function collectUserPayload(isCreate){
+    const payload={
+        username: document.getElementById('usernameField').value.trim(),
+        email: document.getElementById('emailField').value.trim(),
+        role_id: document.getElementById('roleSelect').value || null,
+        is_active: document.getElementById('isActiveField').checked,
+        is_verified: document.getElementById('isVerifiedField').checked
+    };
+    const pw=document.getElementById('passwordField').value;
+    if(isCreate || pw){ payload.password = pw; }
+    return payload;
+}
+
+function submitCreateUser(){
+    const payload=collectUserPayload(true);
+    if(!payload.username || !payload.email || !payload.password){ showError('必須項目が未入力'); return; }
+    fetch('/admin/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(r=>r.json())
+    .then(data=>{ if(data.success){ showSuccess(MSG.user_created); userModalInstance.hide(); loadUserData(); } else { showError(data.error||'Error'); } });
+}
+
+function submitUpdateUser(){
+    const id=document.getElementById('userIdField').value;
+    const payload=collectUserPayload(false);
+    fetch(`/admin/api/users/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(r=>r.json())
+    .then(data=>{ if(data.success){ showSuccess(MSG.user_updated); userModalInstance.hide(); loadUserData(); } else { showError(data.error||'Error'); } });
 }
 
 function deleteUser(userId) {
-    if (!confirm(`ユーザー ${userId} を削除しますか？この操作は取り消せません。`)) {
+    if (!confirm("{{ _('ユーザー') }} " + userId + " {{ _('を削除しますか？この操作は取り消せません。') }}")) {
         return;
     }
     
-    fetch(`/admin/api/users/${userId}`, {
+    fetch('/admin/api/users/' + userId, {
         method: 'DELETE'
     })
     .then(response => response.json())
@@ -1065,79 +957,86 @@ function deleteUser(userId) {
             showSuccess(data.message);
             loadUserData();
         } else {
-            showError('ユーザー削除に失敗しました: ' + data.error);
+            showError('{{ _('ユーザー削除に失敗しました') }}: ' + data.error);
         }
     })
     .catch(error => {
-        showError('ユーザー削除に失敗しました: ' + error.message);
+    showError('{{ _('ユーザー削除に失敗しました') }}: ' + error.message);
     });
 }
 
-function addRole() {
-    const name = prompt('ロール名を入力してください:');
-    if (!name) return;
-    
-    const description = prompt('ロールの説明を入力してください:');
-    
-    fetch('/admin/api/roles', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            name: name,
-            description: description || '',
-            can_use_api: true
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccess(`ロール ${data.role.name} が作成されました`);
-            loadRoleData();
-        } else {
-            showError('ロール作成に失敗しました: ' + data.error);
-        }
-    })
-    .catch(error => {
-        showError('ロール作成に失敗しました: ' + error.message);
-    });
+function ensureRoleModal(){
+    if(!roleModalInstance){
+        const el=document.getElementById('roleModal');
+        if(!window.bootstrap){ console.warn('Bootstrap JS not loaded'); return; }
+        roleModalInstance = new bootstrap.Modal(el);
+    }
 }
 
-function editRole(roleId) {
-    // Simple edit - in production, use a proper form/modal
-    const newDescription = prompt(`ロール ${roleId} の新しい説明を入力してください:`);
-    if (newDescription === null) return;
-    
-    fetch(`/admin/api/roles/${roleId}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            description: newDescription
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccess(`ロールが更新されました`);
-            loadRoleData();
-        } else {
-            showError('ロール更新に失敗しました: ' + data.error);
-        }
-    })
-    .catch(error => {
-        showError('ロール更新に失敗しました: ' + error.message);
-    });
+function addRole(){
+    ensureRoleModal();
+    document.getElementById('roleForm').reset();
+    document.getElementById('roleIdField').value='';
+        document.getElementById('roleModalTitle').textContent="{{ _('新規ロール追加') }}";
+        document.getElementById('saveRoleBtn').textContent="{{ _('作成') }}";
+    roleModalInstance.show();
+    document.getElementById('saveRoleBtn').onclick = submitCreateRole;
+}
+
+function editRole(roleId){
+    ensureRoleModal();
+    fetch('/admin/api/roles/' + roleId)
+        .then(r=>r.json())
+        .then(data=>{
+            if(!data.success){ showError(MSG.load_failed); return; }
+            const r=data.role;
+            document.getElementById('roleModalTitle').textContent="{{ _('ロール編集') }}";
+            document.getElementById('saveRoleBtn').textContent="{{ _('更新') }}";
+            document.getElementById('roleIdField').value=r.id;
+            document.getElementById('roleNameField').value=r.name;
+            document.getElementById('roleDescriptionField').value=r.description||'';
+            document.getElementById('permManageUsers').checked = r.permissions.can_manage_users;
+            document.getElementById('permManageRoles').checked = r.permissions.can_manage_roles;
+            document.getElementById('permViewAll').checked = r.permissions.can_view_all_transcripts;
+            document.getElementById('permUseApi').checked = r.permissions.can_use_api;
+            roleModalInstance.show();
+            document.getElementById('saveRoleBtn').onclick = submitUpdateRole;
+        });
+}
+
+function collectRolePayload(){
+    return {
+        name: document.getElementById('roleNameField').value.trim(),
+        description: document.getElementById('roleDescriptionField').value.trim(),
+        can_manage_users: document.getElementById('permManageUsers').checked,
+        can_manage_roles: document.getElementById('permManageRoles').checked,
+        can_view_all_transcripts: document.getElementById('permViewAll').checked,
+        can_use_api: document.getElementById('permUseApi').checked
+    };
+}
+
+function submitCreateRole(){
+    const payload=collectRolePayload();
+        if(!payload.name){ showError('Role name required'); return; }
+    fetch('/admin/api/roles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(r=>r.json())
+        .then(data=>{ if(data.success){ showSuccess(MSG.role_created); roleModalInstance.hide(); loadRoleData(); } else { showError(data.error||'Error'); } });
+}
+
+function submitUpdateRole(){
+    const id=document.getElementById('roleIdField').value;
+    const payload=collectRolePayload();
+    fetch('/admin/api/roles/' + id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(r=>r.json())
+        .then(data=>{ if(data.success){ showSuccess(MSG.role_updated); roleModalInstance.hide(); loadRoleData(); } else { showError(data.error||'Error'); } });
 }
 
 function deleteRole(roleId) {
-    if (!confirm(`ロール ${roleId} を削除しますか？この操作は取り消せません。`)) {
+    if (!confirm("{{ _('ロール') }} " + roleId + " {{ _('を削除しますか？この操作は取り消せません。') }}")) {
         return;
     }
     
-    fetch(`/admin/api/roles/${roleId}`, {
+    fetch('/admin/api/roles/' + roleId, {
         method: 'DELETE'
     })
     .then(response => response.json())
@@ -1146,11 +1045,11 @@ function deleteRole(roleId) {
             showSuccess(data.message);
             loadRoleData();
         } else {
-            showError('ロール削除に失敗しました: ' + data.error);
+            showError('{{ _('ロール削除に失敗しました') }}: ' + data.error);
         }
     })
     .catch(error => {
-        showError('ロール削除に失敗しました: ' + error.message);
+    showError('{{ _('ロール削除に失敗しました') }}: ' + error.message);
     });
 }
 

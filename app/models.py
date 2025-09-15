@@ -331,6 +331,23 @@ class TranscriptDocument(db.Model):
         return f'<TranscriptDocument {self.title}>'
 
 
+class TranscriptRevision(db.Model):
+    """Stores finalized (or intermediate) corrected versions of a transcript for history."""
+    __tablename__ = 'transcript_revisions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    transcript_id = db.Column(db.Integer, db.ForeignKey('transcript_documents.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    content = db.Column(db.Text, nullable=False)
+    is_final = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    transcript = db.relationship('TranscriptDocument', backref=db.backref('revisions', lazy='dynamic', cascade='all, delete-orphan'))
+
+    def __repr__(self):  # pragma: no cover
+        return f'<TranscriptRevision t={self.transcript_id} id={self.id} final={self.is_final}>'
+
+
 class WordList(db.Model):
     """Model for storing word correction lists with history tracking."""
     

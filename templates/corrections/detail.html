@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}修正ジョブ #{{ job.id }} - Teams Transcript Cleaner{% endblock %}
+{% block title %}{{ _('修正ジョブ') }} #{{ job.id }} - {{ _('Teams Transcript Cleaner') }}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2>
-                <i class="fas fa-task me-2"></i>修正ジョブ #{{ job.id }}
+                <i class="fas fa-task me-2"></i>{{ _('修正ジョブ') }} #{{ job.id }}
             </h2>
             <div>
                 {% if job.status == 'completed' and job.corrected_content %}
                 <a href="{{ url_for('corrections.download', id=job.id) }}" class="btn btn-success">
-                    <i class="fas fa-download me-1"></i>ダウンロード
+                    <i class="fas fa-download me-1"></i>{{ _('ダウンロード') }}
                 </a>
                 {% endif %}
                 <a href="{{ url_for('corrections.list') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left me-1"></i>一覧に戻る
+                    <i class="fas fa-arrow-left me-1"></i>{{ _('一覧に戻る') }}
                 </a>
             </div>
         </div>
@@ -26,7 +26,7 @@
                 {% if job.status == 'completed' and job.corrected_content %}
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">修正結果</h5>
+                        <h5 class="mb-0">{{ _('修正結果') }}</h5>
                     </div>
                     <div class="card-body">
                         <pre style="white-space: pre-wrap; font-family: inherit;">{{ job.corrected_content }}</pre>
@@ -36,21 +36,21 @@
                 <div class="card">
                     <div class="card-body text-center py-5">
                         <div class="spinner-border text-primary mb-3" role="status">
-                            <span class="visually-hidden">処理中...</span>
+                            <span class="visually-hidden">{{ _('処理中...') }}</span>
                         </div>
-                        <h4>処理中</h4>
-                        <p class="text-muted">修正処理を実行しています。しばらくお待ちください。</p>
+                        <h4>{{ _('処理中') }}</h4>
+                        <p class="text-muted">{{ _('修正処理を実行しています。しばらくお待ちください。') }}</p>
                     </div>
                 </div>
                 {% elif job.status == 'failed' %}
                 <div class="card">
                     <div class="card-body text-center py-5">
                         <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
-                        <h4>処理に失敗しました</h4>
-                        <p class="text-muted">{{ job.error_message or 'エラーが発生しました。' }}</p>
+                        <h4>{{ _('処理に失敗しました') }}</h4>
+                        <p class="text-muted">{{ job.error_message or _('エラーが発生しました。') }}</p>
                         <form method="POST" action="{{ url_for('corrections.retry', id=job.id) }}" class="d-inline">
-                            <button type="submit" class="btn btn-warning" onclick="return confirm('このジョブを再試行しますか？')">
-                                <i class="fas fa-redo me-1"></i>再試行
+                            <button type="submit" class="btn btn-warning" data-confirm="{{ _('このジョブを再試行しますか？') }}" onclick="return confirm(this.getAttribute('data-confirm'))">
+                                <i class="fas fa-redo me-1"></i>{{ _('再試行') }}
                             </button>
                         </form>
                     </div>
@@ -59,8 +59,8 @@
                 <div class="card">
                     <div class="card-body text-center py-5">
                         <i class="fas fa-clock fa-3x text-secondary mb-3"></i>
-                        <h4>待機中</h4>
-                        <p class="text-muted">処理の開始を待っています。</p>
+                        <h4>{{ _('待機中') }}</h4>
+                        <p class="text-muted">{{ _('処理の開始を待っています。') }}</p>
                     </div>
                 </div>
                 {% endif %}
@@ -68,7 +68,7 @@
                 {% if job.transcript %}
                 <div class="card mt-3">
                     <div class="card-header">
-                        <h5 class="mb-0">元のトランスクリプト</h5>
+                        <h5 class="mb-0">{{ _('元のトランスクリプト') }}</h5>
                     </div>
                     <div class="card-body">
                         <h6>
@@ -85,57 +85,57 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">ジョブ詳細</h5>
+                        <h5 class="mb-0">{{ _('ジョブ詳細') }}</h5>
                     </div>
                     <div class="card-body">
                         <dl class="row">
                             <dt class="col-sm-5">ID:</dt>
                             <dd class="col-sm-7">{{ job.id }}</dd>
                             
-                            <dt class="col-sm-5">ステータス:</dt>
+                            <dt class="col-sm-5">{{ _('ステータス') }}:</dt>
                             <dd class="col-sm-7">
                                 {% if job.status == 'completed' %}
-                                    <span class="badge bg-success">完了</span>
+                                    <span class="badge bg-success">{{ _('完了') }}</span>
                                 {% elif job.status == 'processing' %}
-                                    <span class="badge bg-warning">処理中</span>
+                                    <span class="badge bg-warning">{{ _('処理中') }}</span>
                                 {% elif job.status == 'failed' %}
-                                    <span class="badge bg-danger">失敗</span>
+                                    <span class="badge bg-danger">{{ _('失敗') }}</span>
                                 {% else %}
                                     <span class="badge bg-secondary">{{ job.status }}</span>
                                 {% endif %}
                             </dd>
                             
-                            <dt class="col-sm-5">処理モード:</dt>
+                            <dt class="col-sm-5">{{ _('処理モード') }}:</dt>
                             <dd class="col-sm-7">{{ job.processing_mode }}</dd>
                             
-                            <dt class="col-sm-5">AIモデル:</dt>
+                            <dt class="col-sm-5">{{ _('AIモデル') }}:</dt>
                             <dd class="col-sm-7">{{ job.model_used }}</dd>
                             
-                            <dt class="col-sm-5">コスト:</dt>
+                            <dt class="col-sm-5">{{ _('コスト') }}:</dt>
                             <dd class="col-sm-7">${{ "%.4f"|format(job.cost) }}</dd>
                             
                             {% if job.prompt_tokens %}
-                            <dt class="col-sm-5">入力トークン:</dt>
+                            <dt class="col-sm-5">{{ _('入力トークン') }}:</dt>
                             <dd class="col-sm-7">{{ job.prompt_tokens }}</dd>
                             {% endif %}
                             
                             {% if job.completion_tokens %}
-                            <dt class="col-sm-5">出力トークン:</dt>
+                            <dt class="col-sm-5">{{ _('出力トークン') }}:</dt>
                             <dd class="col-sm-7">{{ job.completion_tokens }}</dd>
                             {% endif %}
                             
-                            <dt class="col-sm-5">作成日時:</dt>
+                            <dt class="col-sm-5">{{ _('作成日時') }}:</dt>
                             <dd class="col-sm-7">{{ job.created_at.strftime('%Y年%m月%d日 %H:%M') }}</dd>
                             
                             {% if job.completed_at %}
-                            <dt class="col-sm-5">完了日時:</dt>
+                            <dt class="col-sm-5">{{ _('完了日時') }}:</dt>
                             <dd class="col-sm-7">{{ job.completed_at.strftime('%Y年%m月%d日 %H:%M') }}</dd>
                             {% endif %}
                         </dl>
                         
                         {% if job.wordlist %}
                         <div class="mt-3">
-                            <h6>使用したワードリスト</h6>
+                            <h6>{{ _('使用したワードリスト') }}</h6>
                             <a href="{{ url_for('wordlists.detail', id=job.wordlist.id) }}" class="btn btn-sm btn-outline-info">
                                 {{ job.wordlist.name }}
                             </a>
@@ -144,7 +144,7 @@
                         
                         {% if job.custom_prompt %}
                         <div class="mt-3">
-                            <h6>カスタムプロンプト</h6>
+                            <h6>{{ _('カスタムプロンプト') }}</h6>
                             <div class="card">
                                 <div class="card-body">
                                     <small>{{ job.custom_prompt }}</small>

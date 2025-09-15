@@ -130,6 +130,9 @@ def create_app(config_name=None):
     
     # Initialize Babel with locale selector
     babel.init_app(app, locale_selector=get_locale)
+
+    # Make locale accessor available in templates (e.g., for <html lang="...">)
+    app.jinja_env.globals['get_locale'] = get_locale
     
     # Shell context processor
     @app.shell_context_processor
@@ -142,5 +145,13 @@ def create_app(config_name=None):
             'CorrectionJob': CorrectionJob,
             'WordList': WordList
         }
+
+    # Register CLI commands (import late to avoid circular import)
+    try:
+        from app.cli import register_cli  # type: ignore
+        register_cli(app)
+    except Exception as e:  # pragma: no cover
+        # Fail silently in runtime, but app still works; log if needed
+        app.logger.debug(f"CLI registration failed: {e}")
     
     return app

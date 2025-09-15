@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}サーバーエラー - Teams Transcript Cleaner{% endblock %}
+{% block title %}{{ _('サーバーエラー') }} - {{ _('Teams Transcript Cleaner') }}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6 text-center">
         <div class="error-page">
             <h1 class="display-1 text-muted">500</h1>
-            <h2>サーバーエラー</h2>
-            <p class="lead">申し訳ございません。サーバーでエラーが発生しました。</p>
-            <p>問題が続く場合は、管理者にお問い合わせください。</p>
+            <h2>{{ _('サーバーエラー') }}</h2>
+            <p class="lead">{{ _('申し訳ございません。サーバーでエラーが発生しました。') }}</p>
+            <p>{{ _('問題が続く場合は、管理者にお問い合わせください。') }}</p>
             <div class="mt-4">
                 <a href="{{ url_for('main.index') }}" class="btn btn-primary">
-                    <i class="fas fa-home me-1"></i>ホームに戻る
+                    <i class="fas fa-home me-1"></i>{{ _('ホームに戻る') }}
                 </a>
                 <button onclick="history.back()" class="btn btn-secondary ms-2">
-                    <i class="fas fa-arrow-left me-1"></i>前のページに戻る
+                    <i class="fas fa-arrow-left me-1"></i>{{ _('前のページに戻る') }}
                 </button>
             </div>
         </div>

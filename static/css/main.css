@@ -4,6 +4,18 @@ body {
     background-color: #f8f9fa;
 }
 
+/* Make transcript page stretch full width */
+#mainLayoutContainer .row.vh-100 {
+    max-width: 100%;
+}
+
+/* Reduce nested scrollbars: allow right panel to manage its internal scroll only */
+#rightPanel > .flex-fill.p-3.overflow-auto { /* content areas */
+    overflow-y: auto;
+}
+
+#rightPanel { overflow: hidden; }
+
 .navbar-brand {
     font-weight: bold;
 }
@@ -184,6 +196,11 @@ footer {
     outline: none;
     resize: none;
 }
+
+/* Prevent action buttons from stacking vertically and allow permission badges to wrap */
+.actions-cell { white-space: nowrap; }
+.permissions-cell { white-space: normal; }
+.permissions-cell .badge { white-space: nowrap; }
 
 /* Responsive layout fixes */
 @media (max-width: 992px) {

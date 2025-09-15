@@ -1,745 +1,530 @@
-# Teams Transcript Cleaner - Flask Edition Technical Documentation
+# Teams Transcript Cleaner
 
-Flask Edition は軽量性と柔軟性を重視したトランスクリプト処理システムです。
+A Flask-based web application for cleaning and processing Microsoft Teams meeting transcripts.
 
-このドキュメントは、Claude AI によって設計・開発された Flask Edition の技術詳細と開発思想を記録します。
+## Features
 
-## 開発概要
+- **Transcript Upload**: Upload Teams transcript text files (.txt) and optional typo correction list (.csv)
+- **AI-Powered Cleaning**: Uses OpenAI GPT to clean and format transcripts
+- **Word List Management**: Create and manage custom word lists for corrections
+- **Social Login**: Google OAuth integration
+- **Admin Dashboard**: Manage users and system settings
+- **Responsive Design**: Works on desktop and mobile devices
+- **Multi-language (Japanese/English) interface via Flask-Babel**
+- **Transcript revision history**: every finalized download stores a revision (TranscriptRevision) enabling per-user 議事録修正履歴 browsing
+- **Multi-language Support**: Japanese and English with browser-based auto-detection
 
-### プロジェクト背景
-- **開発目的**: 軽量で高速な Flask ベースのトランスクリプト処理システム
-- **設計思想**: シンプルさと柔軟性の両立、セキュリティとスケーラビリティの重視
-- **開発期間**: 2025年7月～8月
-- **開発者**: Claude AI (Anthropic)
-- **最終更新**: 2025年8月31日
+## Quick Start
 
-### Flask アーキテクチャの特徴
-- **軽量性**: 最小限の依存関係で高速起動
-- **柔軟性**: 必要な機能のみを選択的に実装
-- **シンプルさ**: Flask の哲学に従った簡潔な構造
-- **拡張性**: Blueprint による モジュラー設計
+### ⚠️ Virtual Environment Required
 
-#### アーキテクチャ設計思想
+**重要: このプロジェクトは仮想環境での開発が必須です。**
 
-```
-flask/
-├── app/                     # Flask アプリケーション
-│   ├── auth/               # 認証機能（Blueprint）
-│   ├── transcripts/        # トランスクリプト管理
-│   ├── corrections/        # 修正処理
-│   ├── wordlists/          # ワードリスト管理
-│   ├── admin/              # 管理機能
-│   ├── api/                # REST API
-│   └── models.py           # SQLAlchemy モデル
-├── processing/             # ビジネスロジック（独立）
-└── config.py               # 設定管理
-```
+システムのPython環境を汚染しないため、必ず仮想環境を作成してから作業を開始してください。以下の手順に従ってください：
 
-## 技術仕様
+### 1. Environment Setup
 
-### Flask アーキテクチャ
-
-#### アプリケーションファクトリパターン
-```python
-def create_app(config_name=None):
-    app = Flask(__name__)
-    
-    # 設定の読み込み
-    app.config.from_object(config[config_name])
-    
-    # 拡張機能の初期化
-    db.init_app(app)
-    migrate.init_app(app, db)
-    login_manager.init_app(app)
-    
-    # ブループリントの登録
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(transcripts_bp, url_prefix='/transcripts')
-    
-    return app
-```
-
-#### Blueprint による機能分離
-- **auth**: 認証・ユーザー管理
-- **transcripts**: トランスクリプト CRUD
-- **corrections**: 修正処理
-- **wordlists**: 辞書管理
-- **admin**: 管理機能
-- **api**: REST API
-
-### データベース設計（SQLAlchemy）
-
-#### User Model
-```python
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    
-    # API使用量管理
-    api_usage_limit = db.Column(db.Numeric(10, 2), default=Decimal('10.00'))
-    total_api_cost = db.Column(db.Numeric(10, 4), default=Decimal('0.0000'))
-    
-    # 関係性
-    transcripts = db.relationship('TranscriptDocument', backref='user', lazy='dynamic')
-    correction_jobs = db.relationship('CorrectionJob', backref='user', lazy='dynamic')
-    wordlists = db.relationship('WordList', backref='user', lazy='dynamic')
-```
-
-#### TranscriptDocument Model
-```python
-class TranscriptDocument(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    title = db.Column(db.String(255), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    character_count = db.Column(db.Integer, default=0)
-    word_count = db.Column(db.Integer, default=0)
-    
-    @property
-    def estimated_tokens(self):
-        return max(int(self.character_count / 4), self.word_count)
-```
-
-#### CorrectionJob Model
-```python
-class CorrectionJob(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    transcript_id = db.Column(db.Integer, db.ForeignKey('transcript_documents.id'))
-    
-    # 処理設定
-    processing_mode = db.Column(db.String(20), default='proofreading')
-    model_used = db.Column(db.String(50), default='gpt-4o')
-    custom_prompt = db.Column(db.Text)
-    
-    # 結果
-    status = db.Column(db.String(20), default='pending')
-    corrected_content = db.Column(db.Text)
-    cost = db.Column(db.Numeric(10, 4), default=Decimal('0.0000'))
-```
-
-### 認証システム（Flask-Login）
-
-#### 設定
-```python
-login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
-login_manager.login_message = 'ログインが必要です。'
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-```
-
-#### フォーム処理（Flask-WTF）
-```python
-class LoginForm(FlaskForm):
-    username = StringField('ユーザー名またはメールアドレス', validators=[DataRequired()])
-    password = PasswordField('パスワード', validators=[DataRequired()])
-    remember_me = BooleanField('ログイン状態を保持')
-    submit = SubmitField('ログイン')
-```
-
-#### セキュリティ機能
-- **CSRF保護**: Flask-WTF による自動保護
-- **パスワードハッシュ化**: Werkzeug Security
-- **セッション管理**: Flask-Login による管理
-- **入力検証**: WTForms バリデータ
-
-### OpenAI API 統合
-
-#### Flask用サービス設計
-```python
-def get_client():
-    """Get OpenAI API client."""
-    api_key = os.getenv('OPENAI_API_KEY')
-    if not api_key:
-        raise ValueError("OpenAI API key is not configured.")
-    return OpenAI(api_key=api_key)
-
-def correct_text(processing_mode, user_custom_prompt, input_text, 
-                correction_words, model="gpt-4o"):
-    """Correct text using OpenAI API."""
-    client = get_client()
-    # 処理ロジック...
-    return corrected_text, cost, prompt_tokens, completion_tokens
-```
-
-#### 処理フロー
-1. フォームから処理リクエストを受信
-2. CorrectionJob レコード作成
-3. OpenAI API 呼び出し
-4. 結果の保存とコスト計算
-5. ユーザーへの通知
-
-### REST API 設計
-
-#### エンドポイント構造
-```
-/api/v1/
-├── health              # ヘルスチェック
-├── user               # ユーザー情報
-├── transcripts        # トランスクリプト一覧
-└── jobs               # 修正ジョブ一覧
-```
-
-#### レスポンス形式
-```json
-{
-    "transcripts": [
-        {
-            "id": 1,
-            "title": "サンプル議事録",
-            "character_count": 1250,
-            "word_count": 180,
-            "is_processed": false,
-            "created_at": "2025-01-13T10:30:00Z"
-        }
-    ]
-}
-```
-
-## Flask特有の実装
-
-### 設定管理システム
-
-#### 環境別設定
-```python
-class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key')
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
-class DevelopmentConfig(Config):
-    DEBUG = True
-    # 開発環境用設定
-
-class ProductionConfig(Config):
-    DEBUG = False
-    # 本番環境用設定
-
-config = {
-    'development': DevelopmentConfig,
-    'production': ProductionConfig,
-    'default': DevelopmentConfig
-}
-```
-
-### CLI コマンド
-
-#### カスタムコマンド実装
-```python
-@app.cli.command()
-def init_db():
-    """Initialize the database."""
-    db.create_all()
-    print('Database initialized.')
-
-@app.cli.command()
-def create_test_data():
-    """Create test data for development."""
-    # テストデータ作成ロジック
-    print('Test data created successfully!')
-```
-
-### エラーハンドリング
-
-#### カスタムエラーページ
-```python
-@app.errorhandler(404)
-def not_found_error(error):
-    return render_template('errors/404.html'), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    db.session.rollback()
-    return render_template('errors/500.html'), 500
-```
-
-## 開発プロセス
-
-### Flask開発の特徴
-
-#### 段階的構築
-1. **最小限のアプリ**: Flask + SQLAlchemy
-2. **認証追加**: Flask-Login + Flask-WTF
-3. **機能実装**: Blueprint による機能分離
-4. **API追加**: RESTful エンドポイント
-5. **最適化**: キャッシュ・セキュリティ強化
-
-#### Blueprint設計パターン
-```python
-# Blueprint定義
-bp = Blueprint('transcripts', __name__)
-
-# ルート実装
-@bp.route('/')
-@login_required
-def list():
-    return render_template('transcripts/list.html')
-
-# アプリへの登録
-app.register_blueprint(transcripts_bp, url_prefix='/transcripts')
-```
-
-### 品質管理
-
-#### Flask-specific ベストプラクティス
-- **Application Factory**: 設定の柔軟性
-- **Blueprint分離**: 機能のモジュール化
-- **CLI Integration**: 管理タスクの自動化
-- **Error Handling**: 適切なエラーレスポンス
-
-## デプロイメント
-
-### 開発環境
 ```bash
-# Flask開発サーバー
-flask run --debug
+# Clone the repository
+git clone https://github.com/ryuu1kyou/TeamsTranscriptCleanerFlask.git
+cd TeamsTranscriptCleanerFlask
 
-# または
-python app.py
-```
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-### 本番環境
-```bash
-# Gunicorn + Nginx
-gunicorn -w 4 -b 0.0.0.0:8000 app:app
-```
-
-### 環境変数
-```bash
-export FLASK_ENV=production
-export SECRET_KEY=production-secret-key
-export DATABASE_URL=mysql://user:pass@host/db
-```
-
-## Flask アーキテクチャの利点
-
-### 開発効率
-- **軽量性**: 高速な開発開始とデプロイ
-- **柔軟性**: 必要な機能のみを選択して実装
-
-### 学習・保守性
-- **シンプルさ**: 理解しやすい構造
-- **拡張性**: Blueprint による機能分離
-
-### 適用範囲
-- **プロトタイプ開発**: 迅速な概念実証
-- **API サーバー**: RESTful サービス
-- **軽量 Web アプリ**: 高速レスポンス重視
-
-## パフォーマンス最適化
-
-### Flask特有の最適化
-- **App Context**: リクエスト毎の適切なコンテキスト管理
-- **Blueprint Lazy Loading**: 必要時のみモジュール読み込み
-- **SQLAlchemy最適化**: クエリ最適化とコネクションプール
-
-### キャッシュ戦略
-```python
-from flask_caching import Cache
-
-cache = Cache()
-cache.init_app(app)
-
-@cache.cached(timeout=300)
-def expensive_function():
-    # 重い処理
-    return result
-```
-
-## 今後の拡張計画
-
-### Flask生態系活用
-1. **Flask-RESTful**: より高度なAPI開発
-2. **Flask-SocketIO**: リアルタイム機能
-3. **Flask-Admin**: 管理画面の自動生成
-4. **Flask-Celery**: 非同期タスク処理
-
-### 機能拡張
-1. **WebSocket**: リアルタイム処理状況
-2. **Background Tasks**: Celery統合
-3. **API Rate Limiting**: Flask-Limiter
-4. **Advanced Auth**: Flask-Security
-
-## 運用・監視
-
-### ログ管理
-```python
-import logging
-from logging.handlers import RotatingFileHandler
-
-if not app.debug:
-    file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
-    file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    ))
-    app.logger.addHandler(file_handler)
-```
-
-### ヘルスチェック
-```python
-@bp.route('/health')
-def health():
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.utcnow().isoformat(),
-        'version': '1.0.0'
-    })
-```
-
-## 開発者向け情報
-
-### Flask開発環境
-```bash
-# 仮想環境作成
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-
-# 開発用インストール
+# Install dependencies
 pip install -r requirements.txt
-
-# 開発サーバー起動
-export FLASK_ENV=development
-flask run
 ```
 
-### デバッグ
-```python
-# デバッグモードでの詳細エラー
-app.config['DEBUG'] = True
+### 2. Environment Variables
 
-# SQLAlchemyクエリログ
-app.config['SQLALCHEMY_ECHO'] = True
-```
-
-## トラブルシューティング・開発記録
-
-### データベース初期化問題（2025年7月13日）
-
-#### 問題1: 本番設定が開発環境でも評価される問題
-- **症状**: `flask init-db` 実行時に `ValueError: Database configuration is incomplete` エラー
-- **原因**: `config.py` の `ProductionConfig` クラスで環境変数の検証がクラス定義時に実行される
-- **解決策**: 検証ロジックを `@classmethod` に移動し、実際に使用される時にのみ実行
-
-```python
-# 修正前（問題のあるコード）
-class ProductionConfig(Config):
-    if not Config.OPENAI_API_KEY:
-        raise ValueError("OPENAI_API_KEY environment variable is required")
-
-# 修正後
-class ProductionConfig(Config):
-    @classmethod
-    def validate_config(cls):
-        if not Config.OPENAI_API_KEY:
-            raise ValueError("OPENAI_API_KEY environment variable is required")
-```
-
-#### 問題2: MySQL認証エラー
-- **症状**: `(1045, "Access denied for user 'test'@'localhost' (using password: YES)")`
-- **原因**: `.env` ファイルの MySQL パスワードが実際のデータベース設定と不一致
-- **解決策**: 正しい認証情報への更新
-
-#### 問題3: cryptography パッケージ不足
-- **症状**: `'cryptography' package is required for sha256_password or caching_sha2_password auth methods`
-- **原因**: MySQL 8.0 の新しい認証方式に必要な cryptography パッケージが未インストール
-- **解決策**: `pip install cryptography` で追加インストール
-
-#### 問題4: Flask CLI コマンドが認識されない
-- **症状**: `flask create-test-data` コマンドが「No such command」エラー
-- **原因**: Flask アプリケーションファクトリパターンでの CLI コマンド登録の問題
-- **解決策**: Python スクリプトで直接実行する代替方法を使用
-
-### 解決手順まとめ
+Copy `.env.example` to `.env` and configure:
 
 ```bash
-# 1. 設定ファイル修正（検証ロジックの移動）
-# 2. 正しい MySQL 認証情報の設定
-# 3. 必要パッケージの追加インストール
-pip install cryptography
-
-# 4. データベース初期化
-flask db init
-flask db migrate -m "Initial migration"
-flask db upgrade
-
-# 5. テストデータ作成（Python スクリプト経由）
-python -c "from app import create_app, db; from app.models import User; app = create_app(); ..."
+cp .env.example .env
 ```
 
-### OpenAI API統合問題（2025年7月13日）
-
-#### 問題5: OpenAI クライアント初期化エラー
-- **症状**: `Client.__init__() got an unexpected keyword argument 'proxies'`
-- **原因**: OpenAI ライブラリ v1.7.2 と httpx の互換性問題
-- **解決策**: OpenAI ライブラリをアップグレード
+Edit `.env` with your settings:
 
 ```bash
-# 仮想環境でライブラリ更新
+# Database (MySQL)
+DB_NAME=transcript_cleaner_flask
+DB_USER=root
+DB_PASSWORD=your-mysql-password
+DB_HOST=localhost
+DB_PORT=3306
+SECRET_KEY=your-secret-key-here
+
+# OpenAI
+OPENAI_API_KEY=your-openai-api-key
+
+# Social Login (Google only)
+GOOGLE_OAUTH_CLIENT_ID=your-google-client-id
+GOOGLE_OAUTH_CLIENT_SECRET=your-google-client-secret
+```
+
+### 3. Database Setup
+
+```bash
+# Initialize database (Alembic)
+./venv/bin/python -m flask db init
+./venv/bin/python -m flask db migrate -m "Initial"
+./venv/bin/python -m flask db upgrade
+
+# Or (development quick start)
+./venv/bin/python -m flask init-db
+
+# Create admin user (optional)
+./venv/bin/python -m flask create-admin
+```
+
+### 4. Run Application
+
+```bash
+# Development server
+./venv/bin/python -m flask run
+
+# Or use the main app
+./venv/bin/python app.py
+```
+
+Access at: <http://localhost:5000>
+
+## Detailed MySQL + Flask Initialization Guide (From Fresh Machine)
+
+The following end-to-end steps cover setting up MySQL, preparing the virtual environment, applying migrations, and creating initial data (admin + sample records) on a brand new development PC.
+
+### 0. Prerequisites
+
+- OS: Linux (Debian/Ubuntu family assumed)
+- Python 3.12+ (matching your virtualenv)
+- Git installed
+
+### 1. Install & Start MySQL
+
+```bash
+sudo apt update
+sudo apt install -y mysql-server mysql-client
+sudo systemctl enable --now mysql
+```
+Optional hardening (prompts to set root password, remove anonymous users, etc.):
+```bash
+sudo mysql_secure_installation
+```
+
+### (Optional) Updating Translations After UI Changes
+
+Whenever you add or modify translatable strings in Python or Jinja templates (wrapping them in `_(...)`), re-run the translation maintenance command to extract, update, and compile catalogs:
+
+```bash
+flask --app app:create_app compile-translations
+```
+
+Then edit the generated `app/translations/<locale>/LC_MESSAGES/messages.po` files to provide missing translations and re-run the command to compile updated `.mo` files. Strings embedded in JavaScript via Jinja (e.g. `document.getElementById('pricingInfo').textContent = "{{ _('料金') }}: " + value;`) are also picked up because the extractor scans templates.
+
+### 2. (Recommended) Create Dedicated App User & Database
+
+Log into MySQL (many distros allow socket login for root):
+
+```bash
+sudo mysql
+```
+
+Inside the MySQL shell:
+
+```sql
+CREATE DATABASE IF NOT EXISTS transcript_cleaner_flask
+   CHARACTER SET utf8mb4
+   COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'transcript_user'@'localhost' IDENTIFIED BY 'ChangeMe123!';
+GRANT ALL PRIVILEGES ON transcript_cleaner_flask.* TO 'transcript_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+If you insist on using `root` with a password (and encounter plugin `auth_socket` issues), you can switch to native password:
+```sql
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'YourRootPass!';
+FLUSH PRIVILEGES;
+```
+
+### 3. Clone Repository & Virtual Environment
+
+```bash
+git clone https://github.com/ryuu1kyou/TeamsTranscriptCleanerFlask.git
+cd TeamsTranscriptCleanerFlask
+python3 -m venv venv
 source venv/bin/activate
-pip install --upgrade openai
-# v1.7.2 → v1.95.1 に更新
+pip install -r requirements.txt
 ```
 
-#### 問題6: JavaScript コストエラー
-- **症状**: `result.cost.toFixed is not a function`
-- **原因**: API レスポンスの cost が Decimal 型で返されていた
-- **解決策**: API 側で float に変換
+### 4. Configure Environment Variables
 
-```python
-# app/api/routes.py の修正
-return jsonify({
-    'cost': float(cost),  # Decimal から float に変換
-    'prompt_tokens': prompt_tokens,
-    'completion_tokens': completion_tokens,
-    # ...
-})
+```bash
+cp .env.example .env
 ```
 
-### UI/UX 改善記録（2025年7月13日）
+Edit `.env` (minimal example):
 
-#### 差分表示機能の実装
-- **要件**: 修正前後のテキストの差分をビジュアル表示
-- **実装方法**: JavaScript での動的HTML生成
-- **機能**: 
-  - 削除部分: 赤背景 + 取り消し線
-  - 追加部分: 緑背景
-  - チェックボックスでOn/Off切り替え
-
-```javascript
-// 差分表示関数の実装
-function showDiff(original, corrected) {
-    const originalWords = original.split(/(\s+)/);
-    const correctedWords = corrected.split(/(\s+)/);
-    // 単語レベルでの差分比較とHTML生成
-}
+```dotenv
+FLASK_ENV=development
+SECRET_KEY=dev-change-me
+DB_NAME=transcript_cleaner_flask
+DB_USER=transcript_user
+DB_PASSWORD=ChangeMe123!
+DB_HOST=localhost
+DB_PORT=3306
+OPENAI_API_KEY=your-openai-key   # (optional now)
+JWT_SECRET_KEY=dev-jwt-secret
+GOOGLE_OAUTH_CLIENT_ID=...
+GOOGLE_OAUTH_CLIENT_SECRET=...
 ```
 
-#### セッションコスト表示の修正
-- **問題**: DOM要素の特定が不正確
-- **解決策**: より具体的なCSSセレクタを使用
+### 5. Run Database Migrations (Alembic)
 
-```javascript
-// 修正前
-const currentCost = parseFloat(document.querySelector('.text-muted').textContent.match(/\$([0-9.]+)/)?.[1] || 0);
+The project already contains a populated `migrations/` directory, so do NOT run `flask db init` again.
 
-// 修正後
-const sessionCostElement = document.querySelector('.text-muted.small.mb-2');
+```bash
+flask db migrate -m "sync"   # (Should detect no changes if in sync; optional)
+flask db upgrade
+```
+If `flask db migrate` reports new tables on a clean DB, that's normal for first run.
+
+### 6. (If Needed) Recreate Missing `migrations/versions/` Folder
+
+If you ever see `FileNotFoundError` for a revision path, create the folder:
+
+```bash
+mkdir -p migrations/versions
+flask db migrate -m "initial schema"
+flask db upgrade
 ```
 
-### 学習ポイント
+### 7. Register CLI Commands (App Factory Pattern)
 
-1. **設定管理**: Flask の設定クラスでは、実行時検証を避けてメソッドベースの検証を使用
-2. **MySQL 8.0**: 新しい認証方式には cryptography パッケージが必須
-3. **Flask-Migrate**: SQLite から MySQL への移行時は migrations フォルダの再作成が必要
-4. **CLI コマンド**: アプリケーションファクトリパターンでの CLI 登録には注意が必要
-5. **OpenAI 互換性**: ライブラリの版数管理は重要（v1.7.2 → v1.95.1で解決）
-6. **データ型変換**: Decimal型は JavaScript で直接操作できないため float 変換が必要
-7. **DOM操作**: 複数の類似要素がある場合は具体的なセレクタが必要
+This project uses an application factory (`create_app`). Custom CLI commands are registered inside `create_app` via `app/cli.py`.
 
-### 性能最適化記録
+Use the explicit factory reference to ensure the commands load:
+```bash
+flask --app app:create_app --help | grep create-admin
+```
 
-#### API レスポンス最適化
-- Decimal → float 変換でJavaScript処理を高速化
-- エラーハンドリングの強化
-- リアルタイムステータス更新の実装
+### 8. Create Admin User
 
-#### フロントエンド改善
-- ファイルアップロード時のリアルタイム情報表示
-- 処理中の視覚的フィードバック
-- エラー表示の改善
+```bash
+flask --app app:create_app create-admin
+# Output example: Admin user created: admin@example.com / admin123
+```
+Immediately change the password later via the UI or a script.
 
-### 依存関係管理
+### 9. (Optional) Seed Test Data
 
-#### 重要な更新
-- **OpenAI**: `1.7.2` → `1.95.1`
-- **cryptography**: MySQL 8.0 対応で追加
-- **requirements.txt**: 自動更新確認
+```bash
+flask --app app:create_app create-test-data
+```
 
-#### 互換性確認
-- Python 3.12+ での動作確認
-- MySQL 8.0 認証プラグイン: `mysql_native_password`
-- Flask 3.0.0 との互換性維持
+### 10. Verify Tables Manually (Optional)
+
+```bash
+mysql -u $DB_USER -p$DB_PASSWORD -e "USE $DB_NAME; SHOW TABLES;"
+```
+Expected tables: `alembic_version, roles, users, transcript_documents, wordlists, correction_jobs, shared_wordlists`.
+
+### 11. Run the Development Server
+
+```bash
+flask --app app:create_app run
+```
+Access: <http://127.0.0.1:5000>
+
+### 12. Common Issues & Resolutions
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `Access denied for user 'root'@'localhost'` | `auth_socket` plugin vs password | Create dedicated user or alter root to native password |
+| `No such command 'create-admin'` | App factory not referenced | Use `--app app:create_app` |
+| `FileNotFoundError` for versions path` | Missing `migrations/versions` dir | `mkdir -p migrations/versions` then migrate |
+| `No changes in schema detected` on first migrate | DB already matches models | Just run `flask db upgrade` |
+| Google OAuth secret appears with spaces | Copy artifact / leaked secret | Regenerate in GCP console |
+
+### 13. Quick Reset (Drop & Reapply)
+
+```bash
+mysql -u $DB_USER -p$DB_PASSWORD -e "DROP DATABASE IF EXISTS $DB_NAME; CREATE DATABASE $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+flask db upgrade
+flask --app app:create_app create-admin
+```
+
+### 14. SQLite (Temporary Alternative)
+
+If MySQL is unavailable but you want to test UI fast:
+
+```bash
+export SQLALCHEMY_DATABASE_URI=sqlite:///dev.db
+flask --app app:create_app db upgrade
+flask --app app:create_app run
+```
 
 ---
+This section documents the exact working sequence validated on a clean environment (2025-09-01).
 
-**作成者**: Claude AI (Anthropic)  
-**最終更新**: 2025年7月13日（トラブルシューティング追加）  
-**バージョン**: 1.1.0  
-**Framework**: Flask 3.0.0
+## Multi-language Support
 
----
+The application automatically detects browser language settings and supports:
 
-## 最新機能実装 (2025年8月31日更新)
+- **Japanese (日本語)**
+- **English**
 
-### 1. ユーザー管理・ロール管理システム
+### Manual Language Switching
 
-#### 実装概要
-- **完全なRBAC（Role-Based Access Control）**システムを実装
-- 管理者権限による包括的なユーザー・ロール管理機能
-- セッションベースの一時ユーザー認証（ソーシャルログイン用）
+Users can manually switch languages using the language dropdown in the navigation bar.
 
-#### 主要機能
-- **ユーザー管理**: CRUD操作、権限変更、アクティブ状態管理
-- **ロール管理**: 権限の細かい制御、カスタムロール作成
-- **権限システム**: can_manage_users, can_manage_roles, can_view_all_transcripts, can_manage_wordlists, can_use_api
-- **管理UI**: リアルタイム更新、直感的なインターフェース
+### Adding New Languages
 
-#### 技術実装詳細
-```python
-# ロール管理モデル
-class Role(db.Model):
-    can_manage_users = db.Column(db.Boolean, default=False)
-    can_manage_roles = db.Column(db.Boolean, default=False)
-    can_view_all_transcripts = db.Column(db.Boolean, default=False)
-    can_manage_wordlists = db.Column(db.Boolean, default=False)
-    can_use_api = db.Column(db.Boolean, default=True)
+1. Extract translatable strings:
 
-# 権限チェックデコレータ
-@admin_required
-def admin_function():
-    pass
+   ```bash
+   pybabel extract -F babel.cfg -o messages.pot .
+   ```
+
+2. Initialize new language:
+
+   ```bash
+   pybabel init -i messages.pot -d app/translations -l [language-code]
+   ```
+
+3. Edit translation files in `app/translations/[language-code]/LC_MESSAGES/messages.po`
+
+4. Compile translations:
+
+   ```bash
+   pybabel compile -d app/translations
+   ```
+
+## Social Login Setup
+
+### Google OAuth Setup
+
+#### Prerequisites
+
+- Google Cloud Console にログインしていること
+- OAuth 2.0 を設定したい Google Cloud プロジェクト (teams-transcript-cleaner-flask) が選択されていること
+
+#### Step 1: OAuth Consent Screen Setup
+
+1. Navigate to **"APIs & Services" > "OAuth consent screen"**
+2. Select **"External"** for user type (for public apps)
+3. Click **"Create"**
+4. Fill in app information:
+   - **App name**: Teams Transcript Cleaner
+   - **User support email**: Your Gmail address
+   - **Developer contact email**: Your Gmail address
+5. Click **"Save and Continue"**
+
+#### Step 2: Add Scopes
+
+1. Click **"Add or remove scopes"**
+2. Add these scopes:
+   - `https://www.googleapis.com/auth/userinfo.email`
+   - `https://www.googleapis.com/auth/userinfo.profile`
+   - `openid`
+3. Click **"Update"**
+4. Click **"Save and Continue"**
+
+#### Step 3: Add Test Users
+
+1. In **"Test users"** section, click **"Add users"**
+2. Add your Gmail address
+3. Click **"Add"**
+4. Click **"Save and Continue"**
+
+#### Step 4: Create OAuth Client ID
+
+1. Navigate to **"APIs & Services" > "Credentials"**
+2. Click **"Create Credentials" > "OAuth client ID"**
+3. Select **"Web application"**
+4. Name: `teams-transcript-cleaner-local`
+5. Add authorized redirect URI:
+
+   ```bash
+   # Redirect URI (copy line below without the comment)
+   http://localhost:5000/login/google/authorized
+   ```
+6. Click **"Create"**
+
+#### Step 5: Copy Credentials
+
+Copy the displayed **Client ID** and **Client Secret** to your `.env` file.
+
+
+## Usage
+
+### Upload Transcripts
+
+1. Register/login to the application
+2. Click **"Upload Transcript"**
+3. Select your Teams transcript file (.txt) and optional typo list (.csv)
+4. Choose processing options
+5. Submit for processing
+
+### Manage Word Lists
+
+1. Go to **"Word Lists"** in navigation
+2. Create new word lists for specific corrections
+3. Upload CSV files with word mappings
+4. Apply word lists during transcript processing
+
+### View Results
+
+1. Go to **"My Transcripts"**
+2. Click on processed transcripts to view
+3. Download cleaned versions
+4. Make manual corrections if needed
+
+## Development
+
+### Project Structure
+
+```
+TeamsTranscriptCleanerFlask/
+├── app/
+│   ├── __init__.py          # Flask app factory
+│   ├── models.py            # Database models
+│   ├── routes.py            # Main routes
+│   ├── auth/                # Authentication
+│   ├── transcripts/         # Transcript handling
+│   ├── corrections/         # Correction management
+│   ├── wordlists/           # Word list management
+│   └── admin/               # Admin functionality
+├── migrations/              # Database migrations
+├── static/                  # CSS, JS, images
+├── templates/               # HTML templates
+├── processing/              # AI processing logic
+├── translations/            # Multi-language support
+└── uploads/                 # Uploaded files
 ```
 
-### 2. セッションベース一時ユーザーシステム
+### Database Migrations
 
-#### 設計思想
-ソーシャルログインユーザーをDBに永続化せず、セッションのみで管理することで：
-- **プライバシー保護**: 個人情報の永続化を回避
-- **軽量運用**: データベース肥大化の防止
-- **セキュリティ**: 一時的なアクセス権限での利用
+```bash
+# Create new migration
+./venv/bin/python -m flask db migrate -m "description"
 
-#### 実装詳細
-```python
-class TemporaryUser:
-    """DB保存なしの一時ユーザー"""
-    def __init__(self, user_info, provider):
-        self.id = f"temp_{provider}_{user_info['id']}"
-        self.api_usage_limit = 5.0  # 制限された使用量
-        # セッションのみに保存
+# Apply migrations
+./venv/bin/python -m flask db upgrade
+
+# Downgrade migration
+./venv/bin/python -m flask db downgrade
 ```
 
-### 3. WordList管理システム
+### Translation Management
 
-#### 機能概要
-- **版本管理**: 辞書の変更履歴を自動追跡
-- **視覚的管理**: 左右分割レイアウトでの直感的操作
-- **リアルタイム編集**: インライン編集とプレビュー
+```bash
+# Extract new translatable strings
+pybabel extract -F babel.cfg -o messages.pot .
 
-#### 主要機能
-- 辞書一覧表示（使用回数、最終使用日付込み）
-- 詳細表示（CSV内容のテーブル表示）
-- インライン編集（名前、説明、CSV内容）
-- 版本履歴表示
-- CRUD操作（作成、読み込み、更新、削除）
+# Update existing translations
+pybabel update -i messages.pot -d app/translations
 
-#### API設計
-```
-GET    /wordlists/api/wordlists          # 一覧取得
-GET    /wordlists/api/wordlists/<id>     # 詳細取得  
-POST   /wordlists/api/wordlists          # 新規作成
-PUT    /wordlists/api/wordlists/<id>     # 更新
-DELETE /wordlists/api/wordlists/<id>     # 削除
+# Compile translations
+pybabel compile -d app/translations
 ```
 
-### 4. 統合UI設計
+### Testing
 
-#### シングルページアプリケーション
-- **transcripts/index.html**: メイン画面、WordList管理、ユーザー管理を統合
-- **動的コンテンツ切り替え**: JavaScript による滑らかな画面遷移
-- **権限ベース表示制御**: ユーザー権限に応じたUI要素の動的表示/非表示
+```bash
+# Run tests
+./venv/bin/python -m pytest tests/
 
-#### レスポンシブレイアウト
-- **左パネル**: 設定・辞書・管理機能
-- **右パネル**: メインコンテンツエリア
-- **リサイズ対応**: パネル幅の動的調整
+# Run with coverage
+./venv/bin/python -m pytest tests/ --cov=app
+```
 
-### 5. 認証・言語システム
+## Troubleshooting
 
-#### 言語切り替え仕様
-- **ログイン時のみ設定**: セキュリティと一貫性のため、ログイン後の言語変更は不可
-- **セッション永続化**: ログイン時の言語選択をセッション全体で維持
-- **翻訳対応**: Flask-Babel による日英2言語対応
+### Database Issues
 
-#### ソーシャル認証
-- **Google OAuth**: 簡単ログイン機能
-- **一時セッション**: DB保存なしの軽量認証
-- **制限付きアクセス**: API使用量制限（5.0ドル）
+```bash
+# Reset database (MySQL)
+mysql -u ${DB_USER:-root} -p -e "DROP DATABASE IF EXISTS ${DB_NAME:-transcript_cleaner_flask}; CREATE DATABASE ${DB_NAME:-transcript_cleaner_flask} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-### 6. セキュリティ強化
+# Re-run migrations
+./venv/bin/python -m flask db upgrade
 
-#### 実装されたセキュリティ機能
-- **CSRF保護**: Flask-WTF による自動保護
-- **権限ベースアクセス制御**: 細かい権限管理
-- **セッション管理**: 安全な認証状態管理
-- **入力検証**: 全フォーム入力の厳密な検証
-- **SQL インジェクション対策**: SQLAlchemy ORM使用
+# Check migration status
+./venv/bin/python -m flask db current
+./venv/bin/python -m flask db history
+```
 
-#### 管理機能セキュリティ
-- 自己削除・自己無効化の防止
-- 重要ロール（Admin, User）の削除防止
-- 使用中ロールの削除防止
+### OAuth Issues
 
-### 7. パフォーマンス最適化
+- **redirect_uri_mismatch**: Check redirect URI in OAuth settings
+- **invalid_client**: Verify client ID and secret in .env
+- **access_denied**: Ensure test user is added in OAuth console
 
-#### フロントエンド最適化
-- **リアルタイムAPI通信**: 非同期データ更新
-- **効率的DOM操作**: 必要最小限の要素更新
-- **キャッシュ戦略**: セッションデータの効率的活用
+### Common Errors
 
-#### バックエンド最適化
-- **Blueprint分離**: 機能単位でのモジュール化
-- **データベースクエリ最適化**: 効率的な関連データ取得
-- **API レスポンス最適化**: 必要なデータのみの返却
+- **ImportError: Can't find Python file migrations/env.py**: Reinitialize migrations
+- **Database connection errors**: Check DATABASE_URL in .env
+- **OpenAI API errors**: Verify OPENAI_API_KEY is set
 
-### 8. 開発・運用改善
+## License
 
-#### ファイル構成最適化
-不要ファイルの削除により、プロジェクト構成を最適化：
-- 削除: process.html, detail.html, upload.html等の未使用テンプレート
-- 削除: Docker関連ファイル（.dockerignore等）
-- 削除: 未使用のBlueprint（corrections）
-- 統合: メイン機能を単一テンプレートに集約
+MIT License - see LICENSE file for details
 
-#### 保守性向上
-- **統一されたAPI設計**: 一貫したレスポンス形式
-- **エラーハンドリング**: 包括的なエラー処理と通知
-- **コード分離**: ビジネスロジックとUI の明確な分離
+## Social Login Usage Notes
 
----
+### Important Considerations for Social Account Login
 
-## 現在のシステム構成（2025年8月31日時点）
+#### Account Linking Behavior
 
-### アクティブ機能
-- ✅ ユーザー・ロール管理システム
-- ✅ WordList管理・版本管理
-- ✅ セッションベース一時ユーザー
-- ✅ OpenAI API統合（転写処理）
-- ✅ ソーシャル認証（Google）
-- ✅ 多言語対応（日英）
-- ✅ 権限ベースアクセス制御
+- **Email Matching**: When you log in with a social account (Google), the system automatically links to an existing account if the email address matches
+- **Username Generation**: If no existing account is found, a new account is created with a username derived from your email (e.g., "user" from "user@example.com")
+- **Username Conflicts**: If the generated username already exists, a number is appended (e.g., "user1", "user2")
 
-### 技術スタック
-- **バックエンド**: Flask 3.0.0, SQLAlchemy, Flask-Login, Flask-WTF
-- **認証**: Flask-Login, Flask-Dance (OAuth)
-- **データベース**: MySQL 8.0 with PyMySQL
-- **フロントエンド**: Bootstrap 5, Vanilla JavaScript
-- **翻訳**: Flask-Babel
-- **API**: OpenAI GPT-4o/GPT-4o-mini
+#### Security Features
 
-### デプロイ環境
-- **開発**: Flask Development Server
-- **本番推奨**: Gunicorn + Nginx
-- **データベース**: MySQL 8.0+
-- **Python**: 3.12+
+- **Automatic Verification**: Social login accounts are automatically marked as email-verified
+- **No Password Required**: Social login accounts don't require a password for the application
+- **Session Management**: Sessions are managed by the social provider's OAuth tokens
 
----
+#### Data Privacy
 
-**作成者**: Claude AI (Anthropic)  
-**最終更新**: 2025年8月31日  
-**バージョン**: 2.0.0 (統合UI・管理機能完全版)  
-**Framework**: Flask 3.0.0
+- **Minimal Data Collection**: Only essential information (email, name, profile ID) is retrieved from social providers
+- **No Password Storage**: Your social media passwords are never stored or accessed
+- **Revocable Access**: You can revoke application access anytime through your social account settings
+
+#### Account Management
+
+- **Unlinking Social Accounts**: You can unlink your social account from your profile page
+- **Multiple Social Accounts**: Currently supports linking one social provider per account
+- **Fallback Login**: After unlinking, you can still log in with email/password if set up
+
+#### Provider-Specific Notes
+
+##### Google Login
+
+- **Scopes**: Requests access to your basic profile and email address
+- **Offline Access**: Enabled for potential future calendar integration
+- **Test Mode**: Requires adding test users in Google Cloud Console during development
+
+
+#### Development Tips
+
+- **Local Testing**: Use localhost:5000 for redirect URIs during development
+- **HTTPS Requirement**: Social providers require HTTPS in production (except for localhost)
+- **Environment Variables**: Ensure all OAuth credentials are properly set in .env file
+
+#### Migration from Email/Password to Social Login
+
+- **Existing Accounts**: If you have an existing email/password account with the same email, social login will automatically link to it
+- **Password Retention**: Your original password remains available as a fallback login method
+- **Profile Sync**: Basic profile information (name) may be updated from social provider data
+
+#### Production Deployment
+
+- **HTTPS Required**: All social providers require HTTPS in production environments
+- **Domain Verification**: Ensure your production domain is properly configured in OAuth settings
+- **Rate Limits**: Be aware of API rate limits for social login providers

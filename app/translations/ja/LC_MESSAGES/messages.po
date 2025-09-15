@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-09-01 09:02+0900\n"
+"POT-Creation-Date: 2025-09-02 13:25+0900\n"
 "PO-Revision-Date: 2025-07-20 15:55+0900\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ja\n"
@@ -16,203 +16,713 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.17.0\n"
+"Generated-By: Babel 2.10.3\n"
 
-#: templates/base.html:7 templates/base.html:31
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/base.html:7
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:3
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:3
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/404.html:3
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/500.html:3
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:3
+#, fuzzy
+msgid "Teams Transcript Cleaner"
+msgstr "TranscriptCleaner"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/base.html:31
 msgid "Teams文字起こしクリーナー"
 msgstr "Teams文字起こしクリーナー"
 
-#: templates/auth/login_new.html:7
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/auth/login_new.html:7
 msgid "TranscriptCleaner"
 msgstr "TranscriptCleaner"
 
-#: templates/auth/login_new.html:46
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/auth/login_new.html:46
 msgid "Microsoft Teams議事録を AIで自動訂正"
 msgstr "Microsoft Teams議事録を AIで自動訂正"
 
-#: templates/auth/login_new.html:52
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/auth/login_new.html:52
 msgid "ログイン"
 msgstr "ログイン"
 
-#: templates/auth/login_new.html:57
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/auth/login_new.html:57
 msgid "ユーザー名またはメールアドレス"
 msgstr "ユーザー名またはメールアドレス"
 
-#: templates/auth/login_new.html:65
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/auth/login_new.html:65
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:258
 msgid "パスワード"
 msgstr "パスワード"
 
-#: templates/auth/login_new.html:74
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/auth/login_new.html:74
 msgid "ログイン状態を保持する"
 msgstr "ログイン状態を保持する"
 
-#: templates/auth/login_new.html:84
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/auth/login_new.html:84
 msgid "または次の方法でログイン"
 msgstr "または次の方法でログイン"
 
-#: templates/auth/login_new.html:90
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/auth/login_new.html:90
 msgid "Googleでログイン"
 msgstr "Googleでログイン"
 
-#: templates/transcripts/index.html:10
-msgid "設定"
-msgstr "設定"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:3
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:10
+msgid "修正ジョブ"
+msgstr ""
 
-#: templates/transcripts/index.html:13
-msgid "OpenAI APIキーが設定されています"
-msgstr "OpenAI APIキーが設定されています"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:15
+#, fuzzy
+msgid "ダウンロード"
+msgstr "最終確定をダウンロード"
 
-#: templates/transcripts/index.html:17
-msgid "コスト情報"
-msgstr "コスト情報"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:19
+msgid "一覧に戻る"
+msgstr ""
 
-#: templates/transcripts/index.html:19
-msgid "累計使用コスト"
-msgstr "累計使用コスト"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:29
+msgid "修正結果"
+msgstr ""
 
-#: templates/transcripts/index.html:22
-msgid "現在のセッションコスト"
-msgstr "現在のセッションコスト"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:39
+msgid "処理中..."
+msgstr ""
 
-#: templates/transcripts/index.html:24
-msgid "コスト履歴をリセット"
-msgstr "コスト履歴をリセット"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:41
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:100
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:55
+msgid "処理中"
+msgstr ""
 
-#: templates/transcripts/index.html:28
-msgid "OpenAIモデル選択"
-msgstr "OpenAIモデル選択"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:42
+msgid "修正処理を実行しています。しばらくお待ちください。"
+msgstr ""
 
-#: templates/transcripts/index.html:40
-msgid "処理モード選択"
-msgstr "処理モード選択"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:49
+msgid "処理に失敗しました"
+msgstr ""
 
-#: templates/transcripts/index.html:44
-msgid "誤字脱字修正"
-msgstr "誤字脱字修正"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:50
+msgid "エラーが発生しました。"
+msgstr ""
 
-#: templates/transcripts/index.html:50
-msgid "文法修正"
-msgstr "文法修正"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:52
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:75
+msgid "このジョブを再試行しますか？"
+msgstr ""
 
-#: templates/transcripts/index.html:56
-msgid "要約"
-msgstr "要約"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:53
+msgid "再試行"
+msgstr ""
 
-#: templates/transcripts/index.html:62
-msgid "追加の指示（モードに応じて入力）"
-msgstr "追加の指示（モードに応じて入力）"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:62
+msgid "待機中"
+msgstr ""
 
-#: templates/transcripts/index.html:67
-msgid "訂正前辞書 (TXT) アップロード"
-msgstr "訂正前辞書 (TXT) アップロード"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:63
+msgid "処理の開始を待っています。"
+msgstr ""
 
-#: templates/transcripts/index.html:69 templates/transcripts/index.html:79
-msgid "Drag and drop file here"
-msgstr "ファイルをここにドラッグ＆ドロップ"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:71
+msgid "元のトランスクリプト"
+msgstr ""
 
-#: templates/transcripts/index.html:70
-msgid "Limit 200MB per file • TXT"
-msgstr "ファイルあたり200MBまで • TXT"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:88
+msgid "ジョブ詳細"
+msgstr ""
 
-#: templates/transcripts/index.html:72
-msgid "Browse files"
-msgstr "ファイルを選択"
-
-#: templates/transcripts/index.html:77
-msgid "誤字脱字一覧 (CSV) アップロード"
-msgstr "誤字脱字一覧 (CSV) アップロード"
-
-#: templates/transcripts/index.html:80
-msgid "Limit 200MB per file • CSV"
-msgstr "ファイルあたり200MBまで • CSV"
-
-#: templates/transcripts/index.html:89 templates/transcripts/index.html:167
-msgid "辞書一覧"
-msgstr "辞書一覧"
-
-#: templates/transcripts/index.html:97
-msgid "管理"
-msgstr "管理"
-
-#: templates/transcripts/index.html:118
-msgid "ユーザー"
-msgstr "ユーザー"
-
-#: templates/transcripts/index.html:120
-msgid "メイン画面"
-msgstr "メイン画面"
-
-#: templates/transcripts/index.html:122
-msgid "ログアウト"
-msgstr "ログアウト"
-
-#: templates/transcripts/index.html:131
-msgid "訂正前のファイル内容（編集不可）"
-msgstr "訂正前のファイル内容（編集不可）"
-
-#: templates/transcripts/index.html:133
-msgid "テキストファイルをアップロードしてください"
-msgstr "テキストファイルをアップロードしてください"
-
-#: templates/transcripts/index.html:139
-msgid "訂正後のファイル内容（手修正可）"
-msgstr "訂正後のファイル内容（手修正可）"
-
-#: templates/transcripts/index.html:141
-msgid "訂正実行後に結果が表示されます"
-msgstr "訂正実行後に結果が表示されます"
-
-#: templates/transcripts/index.html:151
-msgid "辞書管理"
-msgstr "辞書管理"
-
-#: templates/transcripts/index.html:154
-msgid "新規作成"
-msgstr "新規作成"
-
-#: templates/transcripts/index.html:157
-msgid "戻る"
-msgstr "戻る"
-
-#: templates/transcripts/index.html:207
-msgid "ユーザー管理"
-msgstr "ユーザー管理"
-
-#: templates/transcripts/index.html:212
-msgid "ロール管理"
-msgstr "ロール管理"
-
-#: templates/transcripts/index.html:222
-msgid "ユーザー一覧"
-msgstr "ユーザー一覧"
-
-#: templates/transcripts/index.html:224
-msgid "新規ユーザー追加"
-msgstr "新規ユーザー追加"
-
-#: templates/transcripts/index.html:233
-msgid "ユーザー名"
-msgstr "ユーザー名"
-
-#: templates/transcripts/index.html:234
-msgid "メール"
-msgstr "メール"
-
-#: templates/transcripts/index.html:236
-msgid "最終ログイン"
-msgstr "最終ログイン"
-
-#: templates/transcripts/index.html:237
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:95
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:28
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:192
 msgid "ステータス"
 msgstr "ステータス"
 
-#: templates/transcripts/index.html:288
-msgid "訂正後テキストを訂正前にコピー"
-msgstr "訂正後テキストを訂正前にコピー"
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:98
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:53
+msgid "完了"
+msgstr ""
 
-#: templates/transcripts/index.html:293
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:102
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:57
+msgid "失敗"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:108
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:26
+#, fuzzy
+msgid "処理モード"
+msgstr "処理モード選択"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:111
+#, fuzzy
+msgid "AIモデル"
+msgstr "OpenAIモデル選択"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:114
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:29
+#, fuzzy
+msgid "コスト"
+msgstr "コスト情報"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:118
+msgid "入力トークン"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:123
+msgid "出力トークン"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:127
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:30
+#, fuzzy
+msgid "作成日時"
+msgstr "作成日"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:131
+msgid "完了日時"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:138
+msgid "使用したワードリスト"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/detail.html:147
+msgid "カスタムプロンプト"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:3
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:10
+msgid "修正ジョブ一覧"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:13
+msgid "新しい処理を実行"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:25
+msgid "トランスクリプト"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:27
+#, fuzzy
+msgid "モデル"
+msgstr "OpenAIモデル選択"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:31
+msgid "操作"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:44
+msgid "削除済み"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:91
+msgid "修正ジョブページネーション"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:95
+msgid "前"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:119
+msgid "次"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:130
+msgid "修正ジョブがありません"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:131
+msgid "まだ修正処理を実行していません。"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/corrections/list.html:133
+msgid "処理を開始"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/404.html:3
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/404.html:10
+msgid "ページが見つかりません"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/404.html:11
+msgid "お探しのページは存在しないか、移動された可能性があります。"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/404.html:14
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/500.html:15
+msgid "ホームに戻る"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/404.html:18
+msgid "トランスクリプト一覧"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/500.html:3
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/500.html:10
+msgid "サーバーエラー"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/500.html:11
+msgid "申し訳ございません。サーバーでエラーが発生しました。"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/500.html:12
+msgid "問題が続く場合は、管理者にお問い合わせください。"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/errors/500.html:18
+msgid "前のページに戻る"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:11
+msgid "設定"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:14
+msgid "OpenAI APIキーが設定されています"
+msgstr "OpenAI APIキーが設定されています"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:18
+#, fuzzy
+msgid "コスト情報"
+msgstr "コスト情報"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:20
+#, fuzzy
+msgid "累計使用コスト"
+msgstr "コスト情報"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:23
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:637
+msgid "現在のセッションコスト"
+msgstr "現在のセッションコスト"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:25
+msgid "コスト履歴をリセット"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:29
+msgid "OpenAIモデル選択"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:36
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:681
+msgid "料金"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:36
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:676
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:677
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:678
+msgid "トークン"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:41
+#, fuzzy
+msgid "処理モード選択"
+msgstr "処理モード選択"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:45
+msgid "誤字脱字修正"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:51
+msgid "文法修正"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:57
+msgid "要約"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:62
+msgid "追加の指示（モードに応じて入力）"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:63
+msgid "例：誤字脱字モード『特』に入れ込み要素に確認し、要約モード『130文字以内で箇条書きで』"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:66
+msgid "議事録 (TXT) アップロード"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:68
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:77
+msgid "Drag and drop file here"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:69
+msgid "Limit 200MB per file • TXT"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:71
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:80
+msgid "Browse files"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:75
+msgid "誤字脱字一覧 (CSV) アップロード"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:78
+msgid "Limit 200MB per file • CSV"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:87
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:140
+msgid "議事録修正履歴"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:91
+msgid "管理"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:109
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:942
+#, fuzzy
+msgid "ユーザー"
+msgstr "ユーザー名"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:110
+msgid "ログアウト"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:112
+msgid "メイン画面"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:121
+msgid "訂正前のファイル内容（編集不可）"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:123
+msgid "テキストファイルをアップロードしてください"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:129
+msgid "訂正後のファイル内容（手修正可）"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:131
+msgid "訂正実行後に結果が表示されます"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:143
+msgid "戻る"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:149
+msgid "議事録一覧"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:152
+msgid "読み込み中..."
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:162
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:313
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:820
+msgid "ユーザー管理"
+msgstr "ユーザー管理"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:167
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:319
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:821
+msgid "ロール管理"
+msgstr "ロール管理"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:177
+msgid "ユーザー一覧"
+msgstr "ユーザー一覧"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:179
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:878
+msgid "新規ユーザー追加"
+msgstr "新規ユーザー追加"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:188
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:250
+msgid "ユーザー名"
+msgstr "ユーザー名"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:189
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:254
+msgid "メール"
+msgstr "メール"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:190
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:263
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:1030
+#, fuzzy
+msgid "ロール"
+msgstr "ロール管理"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:191
+msgid "最終ログイン"
+msgstr "最終ログイン"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:193
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:224
+msgid "アクション"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:211
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:975
+#, fuzzy
+msgid "新規ロール追加"
+msgstr "新規ユーザー追加"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:219
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:300
+#, fuzzy
+msgid "ロール名"
+msgstr "ロール管理"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:220
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:304
+msgid "説明"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:221
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:308
+msgid "権限"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:222
+#, fuzzy
+msgid "ユーザー数"
+msgstr "ユーザー名"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:223
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:801
+msgid "作成日"
+msgstr "作成日"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:269
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:766
+msgid "アクティブ"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:275
+msgid "検証済み"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:282
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:339
+msgid "閉じる"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:325
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:822
+msgid "全体閲覧"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:350
+msgid "訂正後テキストを訂正前にコピー"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:355
+#, fuzzy
 msgid "最終確定をダウンロード"
 msgstr "最終確定をダウンロード"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:394
+#, fuzzy
+msgid "Transcript created"
+msgstr "TranscriptCleaner"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:395
+msgid "Failed to create transcript"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:396
+msgid "Please upload a text file"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:397
+msgid "Processing..."
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:398
+msgid "Run Processing"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:399
+msgid "Completed - Cost:"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:400
+msgid "Processing error:"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:401
+msgid "Copied text"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:402
+msgid "No content to download"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:403
+msgid "Upload transcript (TXT) first"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:404
+msgid "Failed to save history:"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:405
+msgid "Saved final revision and downloaded"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:406
+msgid "Load error"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:407
+msgid "Load failed"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:408
+msgid "User created"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:409
+msgid "User updated"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:410
+msgid "Role created"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:411
+msgid "Role updated"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:412
+msgid "Required fields missing"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:413
+msgid "Session cost reset"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:414
+msgid "Role name required"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:415
+msgid "Error"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:416
+msgid "Unknown"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:626
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:633
+msgid "文字数"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:626
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:633
+msgid "単語数"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:676
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:677
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:678
+msgid "入力"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:676
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:677
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:678
+msgid "出力"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:766
+msgid "無効"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:776
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:834
+msgid "編集"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:777
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:835
+msgid "削除"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:796
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:807
+msgid "読み込みエラー"
+msgstr "読み込みエラー"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:797
+msgid "まだ議事録がありません"
+msgstr "まだ議事録がありません"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:801
+msgid "確定回数"
+msgstr "確定回数"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:823
+msgid "辞書管理"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:829
+msgid "説明なし"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:830
+msgid "権限なし"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:879
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:976
+#, fuzzy
+msgid "作成"
+msgstr "作成日"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:880
+msgid "必須"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:896
+#, fuzzy
+msgid "ユーザー編集"
+msgstr "ユーザー名"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:897
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:989
+msgid "更新"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:905
+msgid "空欄の場合は変更されません"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:942
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:1030
+msgid "を削除しますか？この操作は取り消せません。"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:955
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:959
+msgid "ユーザー削除に失敗しました"
+msgstr ""
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:988
+#, fuzzy
+msgid "ロール編集"
+msgstr "ロール管理"
+
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:1043
+#: /home/ryuukyou/python/TeamsTranscriptCleanerFlask/templates/transcripts/index.html:1047
+msgid "ロール削除に失敗しました"
+msgstr ""
 
 #~ msgid "言語"
 #~ msgstr "言語"
@@ -672,4 +1182,113 @@ msgstr "最終確定をダウンロード"
 
 #~ msgid "Not a valid float value."
 #~ msgstr ""
+
+#~ msgid "追加の指示（モードに応じて入力）"
+#~ msgstr "追加の指示（モードに応じて入力）"
+
+#~ msgid "訂正前辞書 (TXT) アップロード"
+#~ msgstr "訂正前辞書 (TXT) アップロード"
+
+# Transcript history & revised labels
+#~ msgid "議事録 (TXT) アップロード"
+#~ msgstr "議事録 (TXT) アップロード"
+
+#~ msgid "Drag and drop file here"
+#~ msgstr "ファイルをここにドラッグ＆ドロップ"
+
+#~ msgid "Limit 200MB per file • TXT"
+#~ msgstr "ファイルあたり200MBまで • TXT"
+
+#~ msgid "Browse files"
+#~ msgstr "ファイルを選択"
+
+#~ msgid "誤字脱字一覧 (CSV) アップロード"
+#~ msgstr "誤字脱字一覧 (CSV) アップロード"
+
+#~ msgid "Limit 200MB per file • CSV"
+#~ msgstr "ファイルあたり200MBまで • CSV"
+
+#~ msgid "辞書一覧"
+#~ msgstr "辞書一覧"
+
+#~ msgid "管理"
+#~ msgstr "管理"
+
+#~ msgid "ユーザー"
+#~ msgstr "ユーザー"
+
+#~ msgid "メイン画面"
+#~ msgstr "メイン画面"
+
+#~ msgid "訂正前のファイル内容（編集不可）"
+#~ msgstr "訂正前のファイル内容（編集不可）"
+
+#~ msgid "テキストファイルをアップロードしてください"
+#~ msgstr "テキストファイルをアップロードしてください"
+
+#~ msgid "訂正後のファイル内容（手修正可）"
+#~ msgstr "訂正後のファイル内容（手修正可）"
+
+#~ msgid "訂正実行後に結果が表示されます"
+#~ msgstr "訂正実行後に結果が表示されます"
+
+#~ msgid "辞書管理"
+#~ msgstr "辞書管理"
+
+#~ msgid "新規作成"
+#~ msgstr "新規作成"
+
+#~ msgid "設定"
+#~ msgstr "設定"
+
+#~ msgid "コスト情報"
+#~ msgstr "コスト情報"
+
+#~ msgid "累計使用コスト"
+#~ msgstr "累計使用コスト"
+
+#~ msgid "コスト履歴をリセット"
+#~ msgstr "コスト履歴をリセット"
+
+#~ msgid "OpenAIモデル選択"
+#~ msgstr "OpenAIモデル選択"
+
+#~ msgid "料金情報"
+#~ msgstr ""
+
+#~ msgid "トークン"
+#~ msgstr ""
+
+#~ msgid "処理モード選択"
+#~ msgstr "処理モード選択"
+
+#~ msgid "誤字脱字修正"
+#~ msgstr "誤字脱字修正"
+
+#~ msgid "文法修正"
+#~ msgstr "文法修正"
+
+#~ msgid "要約"
+#~ msgstr "要約"
+
+#~ msgid "議事録修正履歴"
+#~ msgstr "議事録修正履歴"
+
+#~ msgid "戻る"
+#~ msgstr "戻る"
+
+#~ msgid "議事録一覧"
+#~ msgstr "議事録一覧"
+
+#~ msgid "読み込み中..."
+#~ msgstr "読み込み中..."
+
+#~ msgid "訂正後テキストを訂正前にコピー"
+#~ msgstr "訂正後テキストを訂正前にコピー"
+
+#~ msgid "最終確定をダウンロード"
+#~ msgstr "最終確定をダウンロード"
+
+#~ msgid "最終確定"
+#~ msgstr "最終確定"
 
